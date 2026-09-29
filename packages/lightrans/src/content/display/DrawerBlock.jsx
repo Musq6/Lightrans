@@ -86,35 +86,34 @@ const Handle = styled.div`
     justify-content: center;
     align-items: flex-end;
     cursor: pointer;
-    background: linear-gradient(
-        transparent 0%,
-        rgba(255, 255, 255, 0.4) 30%,
-        rgb(255, 255, 255) 100%
-    );
+    /* 渐隐遮罩颜色随「译文显示样式」设置变化；未提供时不做遮罩 */
+    background: ${(props) =>
+        props.theme.fadeRgb
+            ? `linear-gradient(transparent 0%, rgba(${props.theme.fadeRgb}, 0.4) 30%, rgb(${props.theme.fadeRgb}) 100%)`
+            : "none"};
     ${(props) => (props.fold ? "position: absolute; bottom: 0;" : "")}
 
     &:hover {
-        background: linear-gradient(
-            transparent 0%,
-            rgba(255, 255, 255, 0.7) 30%,
-            rgb(255, 255, 255) 100%
-        );
+        background: ${(props) =>
+            props.theme.fadeRgb
+                ? `linear-gradient(transparent 0%, rgba(${props.theme.fadeRgb}, 0.7) 30%, rgb(${props.theme.fadeRgb}) 100%)`
+                : "none"};
     }
 
     &:hover svg {
         fill: #4a8cf7;
     }
 `;
-const IconStyle = css`
+const iconStyle = (props) => css`
     width: 20px;
     height: 20px;
-    fill: #5f6368;
+    fill: ${props.theme.secondaryColor};
 `;
 const StyledArrowDownIcon = styled(ArrowDownIcon)`
-    ${IconStyle};
+    ${(props) => iconStyle(props)};
 `;
 const StyledArrowUpIcon = styled(ArrowUpIcon)`
-    ${IconStyle};
+    ${(props) => iconStyle(props)};
     height: ${HandleExpandHeight}px;
 `;
 /**

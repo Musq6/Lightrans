@@ -1,4 +1,128 @@
 {
+    "DisplayStyleSetting": {
+        "message": "選択翻訳パネルのスタイル",
+        "description": "译文显示样式设置"
+    },
+    "PanelAppearance": {
+        "message": "パネルの外観",
+        "description": "訳文の表示スタイル設定"
+    },
+    "PanelStyleGlass": {
+        "message": "すりガラス",
+        "description": "訳文の表示スタイル設定"
+    },
+    "PanelStyleSolid": {
+        "message": "単色",
+        "description": "訳文の表示スタイル設定"
+    },
+    "PanelStyleDark": {
+        "message": "ダーク",
+        "description": "訳文の表示スタイル設定"
+    },
+    "TextColorSetting": {
+        "message": "文字色",
+        "description": "訳文の表示スタイル設定"
+    },
+    "TextColorAuto": {
+        "message": "パネルに合わせる",
+        "description": "訳文の表示スタイル設定"
+    },
+    "TextColorDark": {
+        "message": "濃い文字",
+        "description": "訳文の表示スタイル設定"
+    },
+    "TextColorLight": {
+        "message": "淡い文字",
+        "description": "訳文の表示スタイル設定"
+    },
+    "FontSizeSetting": {
+        "message": "文字サイズ",
+        "description": "訳文の表示スタイル設定"
+    },
+    "FontSizeSmall": {
+        "message": "小",
+        "description": "訳文の表示スタイル設定"
+    },
+    "FontSizeMedium": {
+        "message": "中",
+        "description": "訳文の表示スタイル設定"
+    },
+    "FontSizeLarge": {
+        "message": "大",
+        "description": "訳文の表示スタイル設定"
+    },
+    "CornerRadiusSetting": {
+        "message": "角丸",
+        "description": "訳文の表示スタイル設定"
+    },
+    "CornerRadiusNone": {
+        "message": "直角",
+        "description": "訳文の表示スタイル設定"
+    },
+    "CornerRadiusSmall": {
+        "message": "小",
+        "description": "訳文の表示スタイル設定"
+    },
+    "CornerRadiusMedium": {
+        "message": "中",
+        "description": "訳文の表示スタイル設定"
+    },
+    "CornerRadiusLarge": {
+        "message": "大",
+        "description": "訳文の表示スタイル設定"
+    },
+    "PanelShadowSetting": {
+        "message": "パネルの影",
+        "description": "訳文の表示スタイル設定"
+    },
+    "PageTranslationStyleSetting": {
+        "message": "ページ翻訳の訳文スタイル",
+        "description": "整页翻译译文样式设置"
+    },
+    "PageThemeSetting": {
+        "message": "訳文の表示",
+        "description": "整页翻译译文样式设置"
+    },
+    "PageThemeBlock": {
+        "message": "ブロック",
+        "description": "整页翻译译文样式设置"
+    },
+    "PageThemeHighlight": {
+        "message": "ハイライト",
+        "description": "整页翻译译文样式设置"
+    },
+    "PageThemeUnderline": {
+        "message": "下線",
+        "description": "整页翻译译文样式设置"
+    },
+    "PageThemePlain": {
+        "message": "プレーンテキスト",
+        "description": "整页翻译译文样式设置"
+    },
+    "AccentColorSetting": {
+        "message": "アクセントカラー",
+        "description": "整页翻译译文样式设置"
+    },
+    "AccentBlue": {
+        "message": "ブルー",
+        "description": "整页翻译译文样式设置"
+    },
+    "AccentGreen": {
+        "message": "グリーン",
+        "description": "整页翻译译文样式设置"
+    },
+    "AccentOrange": {
+        "message": "オレンジ",
+        "description": "整页翻译译文样式设置"
+    },
+    "AccentGray": {
+        "message": "グレー",
+        "description": "整页翻译译文样式设置"
+    },
+    "PageDarkModeSetting": {
+        "message": "ダークページ向け",
+        "description": "整页翻译译文样式设置"
+    },
     "AppName": {
         "message": "lightrans",
         "description": "アプリケーション名"

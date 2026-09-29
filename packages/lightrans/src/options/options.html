@@ -187,6 +187,314 @@
                             ></label>
                         </div>
                     </div>
+
+                    <!-- 划词翻译结果框样式 -->
+                    <label
+                        class="setting-subtitle i18n"
+                        data-i18n-name="DisplayStyleSetting"
+                    ></label>
+                    <div class="row">
+                        <div class="column">
+                            <label
+                                class="checked-label i18n"
+                                data-i18n-name="PanelAppearance"
+                                data-insert-pos="afterBegin"
+                            >
+                                <select
+                                    setting-type="select"
+                                    id="panel-style"
+                                    setting-path="DisplayStyle PanelStyle"
+                                >
+                                    <option
+                                        value="glass"
+                                        data-i18n-name="PanelStyleGlass"
+                                        class="i18n"
+                                    ></option>
+                                    <option
+                                        value="solid"
+                                        data-i18n-name="PanelStyleSolid"
+                                        class="i18n"
+                                    ></option>
+                                    <option
+                                        value="dark"
+                                        data-i18n-name="PanelStyleDark"
+                                        class="i18n"
+                                    ></option>
+                                </select>
+                            </label>
+                        </div>
+                        <div class="column">
+                            <label
+                                class="checked-label i18n"
+                                data-i18n-name="TextColorSetting"
+                                data-insert-pos="afterBegin"
+                            >
+                                <select
+                                    setting-type="select"
+                                    id="display-text-color"
+                                    setting-path="DisplayStyle TextColor"
+                                >
+                                    <option
+                                        value="auto"
+                                        data-i18n-name="TextColorAuto"
+                                        class="i18n"
+                                    ></option>
+                                    <option
+                                        value="dark"
+                                        data-i18n-name="TextColorDark"
+                                        class="i18n"
+                                    ></option>
+                                    <option
+                                        value="light"
+                                        data-i18n-name="TextColorLight"
+                                        class="i18n"
+                                    ></option>
+                                </select>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="column">
+                            <label
+                                class="checked-label i18n"
+                                data-i18n-name="FontSizeSetting"
+                                data-insert-pos="afterBegin"
+                            >
+                                <select
+                                    setting-type="select"
+                                    id="display-font-size"
+                                    setting-path="DisplayStyle FontSize"
+                                >
+                                    <option
+                                        value="small"
+                                        data-i18n-name="FontSizeSmall"
+                                        class="i18n"
+                                    ></option>
+                                    <option
+                                        value="medium"
+                                        data-i18n-name="FontSizeMedium"
+                                        class="i18n"
+                                    ></option>
+                                    <option
+                                        value="large"
+                                        data-i18n-name="FontSizeLarge"
+                                        class="i18n"
+                                    ></option>
+                                </select>
+                            </label>
+                        </div>
+                        <div class="column">
+                            <label
+                                class="checked-label i18n"
+                                data-i18n-name="CornerRadiusSetting"
+                                data-insert-pos="afterBegin"
+                            >
+                                <select
+                                    setting-type="select"
+                                    id="display-corner-radius"
+                                    setting-path="DisplayStyle CornerRadius"
+                                >
+                                    <option
+                                        value="none"
+                                        data-i18n-name="CornerRadiusNone"
+                                        class="i18n"
+                                    ></option>
+                                    <option
+                                        value="small"
+                                        data-i18n-name="CornerRadiusSmall"
+                                        class="i18n"
+                                    ></option>
+                                    <option
+                                        value="medium"
+                                        data-i18n-name="CornerRadiusMedium"
+                                        class="i18n"
+                                    ></option>
+                                    <option
+                                        value="large"
+                                        data-i18n-name="CornerRadiusLarge"
+                                        class="i18n"
+                                    ></option>
+                                </select>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="column">
+                            <input
+                                type="checkbox"
+                                value="shadow"
+                                setting-type="switch"
+                                setting-path="DisplayStyle Shadow"
+                                class="switch"
+                                id="panel-shadow"
+                            />
+                            <span class="space"></span>
+                            <label
+                                for="panel-shadow"
+                                class="checked-label i18n"
+                                data-i18n-name="PanelShadowSetting"
+                            ></label>
+                        </div>
+                    </div>
+
+                    <!-- 整页翻译对照模式下的译文样式（与上面划词结果框相互独立） -->
+                    <label
+                        class="setting-subtitle i18n"
+                        data-i18n-name="PageTranslationStyleSetting"
+                    ></label>
+                    <div class="row">
+                        <div class="column">
+                            <label
+                                class="checked-label i18n"
+                                data-i18n-name="PageThemeSetting"
+                                data-insert-pos="afterBegin"
+                            >
+                                <select
+                                    setting-type="select"
+                                    id="page-translation-theme"
+                                    setting-path="PageTranslationStyle Theme"
+                                >
+                                    <option
+                                        value="block"
+                                        data-i18n-name="PageThemeBlock"
+                                        class="i18n"
+                                    ></option>
+                                    <option
+                                        value="highlight"
+                                        data-i18n-name="PageThemeHighlight"
+                                        class="i18n"
+                                    ></option>
+                                    <option
+                                        value="underline"
+                                        data-i18n-name="PageThemeUnderline"
+                                        class="i18n"
+                                    ></option>
+                                    <option
+                                        value="plain"
+                                        data-i18n-name="PageThemePlain"
+                                        class="i18n"
+                                    ></option>
+                                </select>
+                            </label>
+                        </div>
+                        <div class="column">
+                            <label
+                                class="checked-label i18n"
+                                data-i18n-name="AccentColorSetting"
+                                data-insert-pos="afterBegin"
+                            >
+                                <select
+                                    setting-type="select"
+                                    id="page-translation-accent"
+                                    setting-path="PageTranslationStyle Accent"
+                                >
+                                    <option
+                                        value="blue"
+                                        data-i18n-name="AccentBlue"
+                                        class="i18n"
+                                    ></option>
+                                    <option
+                                        value="green"
+                                        data-i18n-name="AccentGreen"
+                                        class="i18n"
+                                    ></option>
+                                    <option
+                                        value="orange"
+                                        data-i18n-name="AccentOrange"
+                                        class="i18n"
+                                    ></option>
+                                    <option
+                                        value="gray"
+                                        data-i18n-name="AccentGray"
+                                        class="i18n"
+                                    ></option>
+                                </select>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="column">
+                            <label
+                                class="checked-label i18n"
+                                data-i18n-name="FontSizeSetting"
+                                data-insert-pos="afterBegin"
+                            >
+                                <select
+                                    setting-type="select"
+                                    id="page-translation-font-size"
+                                    setting-path="PageTranslationStyle FontSize"
+                                >
+                                    <option
+                                        value="small"
+                                        data-i18n-name="FontSizeSmall"
+                                        class="i18n"
+                                    ></option>
+                                    <option
+                                        value="medium"
+                                        data-i18n-name="FontSizeMedium"
+                                        class="i18n"
+                                    ></option>
+                                    <option
+                                        value="large"
+                                        data-i18n-name="FontSizeLarge"
+                                        class="i18n"
+                                    ></option>
+                                </select>
+                            </label>
+                        </div>
+                        <div class="column">
+                            <label
+                                class="checked-label i18n"
+                                data-i18n-name="CornerRadiusSetting"
+                                data-insert-pos="afterBegin"
+                            >
+                                <select
+                                    setting-type="select"
+                                    id="page-translation-radius"
+                                    setting-path="PageTranslationStyle Radius"
+                                >
+                                    <option
+                                        value="none"
+                                        data-i18n-name="CornerRadiusNone"
+                                        class="i18n"
+                                    ></option>
+                                    <option
+                                        value="small"
+                                        data-i18n-name="CornerRadiusSmall"
+                                        class="i18n"
+                                    ></option>
+                                    <option
+                                        value="medium"
+                                        data-i18n-name="CornerRadiusMedium"
+                                        class="i18n"
+                                    ></option>
+                                    <option
+                                        value="large"
+                                        data-i18n-name="CornerRadiusLarge"
+                                        class="i18n"
+                                    ></option>
+                                </select>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="column">
+                            <input
+                                type="checkbox"
+                                value="page-dark-mode"
+                                setting-type="switch"
+                                setting-path="PageTranslationStyle DarkMode"
+                                class="switch"
+                                id="page-translation-dark-mode"
+                            />
+                            <span class="space"></span>
+                            <label
+                                for="page-translation-dark-mode"
+                                class="checked-label i18n"
+                                data-i18n-name="PageDarkModeSetting"
+                            ></label>
+                        </div>
+                    </div>
                 </div>
 
                 <label

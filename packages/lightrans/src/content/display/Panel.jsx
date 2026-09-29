@@ -2,7 +2,7 @@
 import { h, Fragment } from "preact";
 import { useEffect, useState, useRef, useCallback } from "preact/hooks";
 import { useLatest, useEvent, useClickAway } from "react-use";
-import styled, { createGlobalStyle } from "styled-components";
+import styled, { createGlobalStyle, ThemeProvider } from "styled-components";
 import root from "react-shadow/styled-components";
 import SimpleBar from "simplebar-react";
 import SimpleBarStyle from "simplebar-react/dist/simplebar.min.css";
@@ -12,6 +12,7 @@ import { delayPromise } from "common/scripts/promise.js";
 import { DEFAULT_SETTINGS, getOrSetDefaultSettings } from "common/scripts/settings.js";
 import { isChromePDFViewer } from "../common.js";
 import Result from "./Result.jsx"; // display translate result
+import { resolveDisplayStyle, fs, FONT_SCALE, FONT_SIZE_VAR } from "./displayStyle.js"; // 译文显示样式解析
 import Loading from "./Loading.jsx"; // display loading animation
 import Error from "./Error.jsx"; // display error messages
 import Dropdown from "./Dropdown.jsx";
@@ -60,6 +61,8 @@ export default function ResultPanel() {
      * In the chrome native pdf viewer, mouse events can't be detected. In order to make the panel resizable, we build a mask layer that fills the whole page to detect mouse events.
      */
     const [usePDFMaskLayer, setUsePDFMaskLayer] = useState(false);
+    // 译文显示样式：把设置里的 DisplayStyle 解析成一组可直接使用的样式值
+    const [displayStyle, setDisplayStyle] = useState(() => resolveDisplayStyle());
 
     const containerElRef = useRef(), // the container of translation panel.
         panelElRef = useRef(), // panel element
@@ -136,6 +139,16 @@ export default function ResultPanel() {
 
         getOrSetDefaultSettings("fixSetting", DEFAULT_SETTINGS).then((result) => {
             setPanelFix(result.fixSetting);
+        });
+
+        // 译文显示样式：读取一次，并在设置变更时实时生效
+        getOrSetDefaultSettings("DisplayStyle", DEFAULT_SETTINGS).then((result) => {
+            setDisplayStyle(resolveDisplayStyle(result.DisplayStyle));
+        });
+
+        chrome.storage.onChanged.addListener((changes, area) => {
+            if (area !== "sync" || !changes.DisplayStyle) return;
+            setDisplayStyle(resolveDisplayStyle(changes.DisplayStyle.newValue));
         });
 
         /*
@@ -612,87 +625,89 @@ export default function ResultPanel() {
                         : {}
                 }
             >
-                <GlobalStyle />
-                <Panel ref={onDisplayStatusChange} displayType={displayType} data-testid="Panel">
-                    {
-                        // Only show the panel's content when the panel is movable.
-                        moveableReady && (
-                            <Fragment>
-                                <Head ref={headElRef} displayType={displayType} data-testid="Head">
-                                    <SourceOption
-                                        title={currentTranslator}
-                                        activeKey={currentTranslator}
-                                        onSelect={(eventKey) => {
-                                            setCurrentTranslator(eventKey);
-                                            channel
-                                                .request("update_ai_model", {
-                                                    model: eventKey,
-                                                })
-                                                .then(() => {
-                                                    if (window.translateResult.originalText)
-                                                        channel.request("translate", {
-                                                            text: window.translateResult
-                                                                .originalText,
-                                                        });
-                                                });
-                                        }}
-                                        data-testid="SourceOption"
-                                    >
-                                        {availableTranslators?.map((model) => (
-                                            <Dropdown.Item
-                                                role="button"
-                                                key={model}
-                                                eventKey={model}
-                                            >
-                                                {model}
-                                            </Dropdown.Item>
-                                        ))}
-                                    </SourceOption>
-                                    <HeadIcons>
-                                        <HeadIcon
-                                            role="button"
-                                            title={chrome.i18n.getMessage("Settings")}
-                                            onClick={() => channel.emit("open_options_page")}
-                                            data-testid="SettingIcon"
-                                        >
-                                            <SettingIcon />
-                                        </HeadIcon>
-                                        <HeadIcon
-                                            role="button"
-                                            title={chrome.i18n.getMessage(
-                                                panelFix ? "UnfixResultFrame" : "FixResultFrame"
-                                            )}
-                                            onClick={() => {
-                                                setPanelFix(!panelFix);
-                                                chrome.storage.sync.set({
-                                                    fixSetting: !panelFix,
-                                                });
+                <ThemeProvider theme={displayStyle}>
+                    <GlobalStyle />
+                    <Panel ref={onDisplayStatusChange} displayType={displayType} data-testid="Panel">
+                        {
+                            // Only show the panel's content when the panel is movable.
+                            moveableReady && (
+                                <Fragment>
+                                    <Head ref={headElRef} displayType={displayType} data-testid="Head">
+                                        <SourceOption
+                                            title={currentTranslator}
+                                            activeKey={currentTranslator}
+                                            onSelect={(eventKey) => {
+                                                setCurrentTranslator(eventKey);
+                                                channel
+                                                    .request("update_ai_model", {
+                                                        model: eventKey,
+                                                    })
+                                                    .then(() => {
+                                                        if (window.translateResult.originalText)
+                                                            channel.request("translate", {
+                                                                text: window.translateResult
+                                                                    .originalText,
+                                                            });
+                                                    });
                                             }}
-                                            data-testid="PinIcon"
+                                            data-testid="SourceOption"
                                         >
-                                            <StyledPinIcon fix={panelFix} />
-                                        </HeadIcon>
-                                        <HeadIcon
-                                            role="button"
-                                            title={chrome.i18n.getMessage("CloseResultFrame")}
-                                            onClick={() => setOpen(false)}
-                                            data-testid="CloseIcon"
-                                        >
-                                            <CloseIcon />
-                                        </HeadIcon>
-                                    </HeadIcons>
-                                </Head>
-                                <Body ref={bodyElRef}>
-                                    <SimpleBar ref={simplebarRef}>
-                                        {contentType === "LOADING" && <Loading />}
-                                        {contentType === "RESULT" && <Result {...content} />}
-                                        {contentType === "ERROR" && <Error {...content} />}
-                                    </SimpleBar>
-                                </Body>
-                            </Fragment>
-                        )
-                    }
-                </Panel>
+                                            {availableTranslators?.map((model) => (
+                                                <Dropdown.Item
+                                                    role="button"
+                                                    key={model}
+                                                    eventKey={model}
+                                                >
+                                                    {model}
+                                                </Dropdown.Item>
+                                            ))}
+                                        </SourceOption>
+                                        <HeadIcons>
+                                            <HeadIcon
+                                                role="button"
+                                                title={chrome.i18n.getMessage("Settings")}
+                                                onClick={() => channel.emit("open_options_page")}
+                                                data-testid="SettingIcon"
+                                            >
+                                                <SettingIcon />
+                                            </HeadIcon>
+                                            <HeadIcon
+                                                role="button"
+                                                title={chrome.i18n.getMessage(
+                                                    panelFix ? "UnfixResultFrame" : "FixResultFrame"
+                                                )}
+                                                onClick={() => {
+                                                    setPanelFix(!panelFix);
+                                                    chrome.storage.sync.set({
+                                                        fixSetting: !panelFix,
+                                                    });
+                                                }}
+                                                data-testid="PinIcon"
+                                            >
+                                                <StyledPinIcon fix={panelFix} />
+                                            </HeadIcon>
+                                            <HeadIcon
+                                                role="button"
+                                                title={chrome.i18n.getMessage("CloseResultFrame")}
+                                                onClick={() => setOpen(false)}
+                                                data-testid="CloseIcon"
+                                            >
+                                                <CloseIcon />
+                                            </HeadIcon>
+                                        </HeadIcons>
+                                    </Head>
+                                    <Body ref={bodyElRef}>
+                                        <SimpleBar ref={simplebarRef}>
+                                            {contentType === "LOADING" && <Loading />}
+                                            {contentType === "RESULT" && <Result {...content} />}
+                                            {contentType === "ERROR" && <Error {...content} />}
+                                        </SimpleBar>
+                                    </Body>
+                                </Fragment>
+                            )
+                        }
+                    </Panel>
+                </ThemeProvider>
                 {highlight.show && (
                     <Highlight
                         style={{
@@ -712,7 +727,6 @@ export default function ResultPanel() {
 
 export const MaxZIndex = 2147483647;
 const ColorPrimary = "#4a8cf7";
-const PanelBorderRadius = "14px";
 export const ContentWrapperCenterClassName = "simplebar-content-wrapper-center";
 
 const GlobalStyle = createGlobalStyle`
@@ -797,13 +811,14 @@ const Panel = styled.div`
     top: 0;
     left: 0;
     z-index: ${MaxZIndex};
-    border-radius: ${(props) => (props.displayType === "floating" ? PanelBorderRadius : 0)};
+    /* 圆角 / 阴影 / 底色 / 模糊均由「译文显示样式」设置决定 */
+    border-radius: ${(props) =>
+        props.displayType === "floating" ? `${props.theme.panelRadius}px` : 0};
     overflow: visible;
-    box-shadow: 0 12px 40px rgba(31, 41, 55, 0.22), 0 2px 8px rgba(31, 41, 55, 0.1);
-    background: rgba(255, 255, 255, 0.7);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
-    backdrop-filter: blur(20px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.65);
+    box-shadow: ${(props) => props.theme.panelShadow};
+    background: ${(props) => props.theme.panelBg};
+    -webkit-backdrop-filter: ${(props) => props.theme.panelBlur};
+    backdrop-filter: ${(props) => props.theme.panelBlur};
 
     /* Floating panel: shrink-to-fit content so short translations don't leave
        dead glass space below. The cap matches the default floating height
@@ -820,10 +835,12 @@ const Panel = styled.div`
     /* Normalize the style of panel */
     padding: 0;
     margin: 0;
-    border: none;
-    font-size: 16px;
+    border: ${(props) => props.theme.panelBorder};
+    font-size: ${(props) => props.theme.fontSize}px;
+    /* 把当前字号暴露成变量，供内部所有元素按比例折算（见 displayStyle.js 的 fs()） */
+    ${FONT_SIZE_VAR}: ${(props) => props.theme.fontSize}px;
     font-weight: normal;
-    color: #1f2430;
+    color: ${(props) => props.theme.panelColor};
     line-height: 1;
     -webkit-text-size-adjust: 100%;
     box-sizing: border-box;
@@ -843,12 +860,9 @@ const Panel = styled.div`
         display: block;
         height: 65%;
         pointer-events: none;
-        border-radius: ${(props) => (props.displayType === "floating" ? PanelBorderRadius : 0)};
-        background: linear-gradient(
-            180deg,
-            rgba(255, 255, 255, 0.55) 0%,
-            rgba(255, 255, 255, 0) 100%
-        );
+        border-radius: ${(props) =>
+            props.displayType === "floating" ? `${props.theme.panelRadius}px` : 0};
+        background: ${(props) => props.theme.panelShine};
     }
 `;
 
@@ -860,14 +874,12 @@ const Head = styled.div`
     flex: 0 0 auto;
     overflow: visible;
     cursor: grab;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-    background: linear-gradient(
-        180deg,
-        rgba(255, 255, 255, 0.4) 0%,
-        rgba(255, 255, 255, 0) 100%
-    );
+    border-bottom: ${(props) => props.theme.headBorderBottom};
+    background: ${(props) => props.theme.headBg};
     border-radius: ${(props) =>
-        props.displayType === "floating" ? `${PanelBorderRadius} ${PanelBorderRadius} 0 0` : "0"};
+        props.displayType === "floating"
+            ? `${props.theme.panelRadius}px ${props.theme.panelRadius}px 0 0`
+            : "0"};
 `;
 
 const HeadIcons = styled.div`
@@ -890,11 +902,11 @@ const HeadIcon = styled.div`
     height: 30px;
     margin: 2px;
     border-radius: 9px;
-    background-color: rgba(0, 0, 0, 0.04);
+    background-color: ${(props) => props.theme.iconButtonBg};
     transition: background-color 0.18s ease, transform 0.18s ease;
 
     svg {
-        fill: #5f6368;
+        fill: ${(props) => props.theme.secondaryColor};
         width: 16px;
         height: 16px;
         display: block;
@@ -902,7 +914,7 @@ const HeadIcon = styled.div`
     }
 
     &:hover {
-        background-color: rgba(0, 0, 0, 0.08);
+        background-color: ${(props) => props.theme.iconButtonBgHover};
     }
 
     &:hover svg {
@@ -923,7 +935,7 @@ const Body = styled.div`
     width: 100%;
     box-sizing: border-box;
     font-weight: normal;
-    font-size: medium;
+    font-size: ${fs(FONT_SCALE.medium)};
     position: relative;
     padding-top: 6px;
     display: flex;
@@ -941,7 +953,7 @@ const Body = styled.div`
 const SourceOption = styled(Dropdown)`
     max-width: 45%;
     font-weight: normal;
-    font-size: small;
+    font-size: ${fs(FONT_SCALE.small)};
     cursor: pointer;
     // To center the text in select box
     text-align-last: center;

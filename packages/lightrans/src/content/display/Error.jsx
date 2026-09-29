@@ -3,6 +3,7 @@ import { h } from "preact";
 import styled from "styled-components";
 import { useEffect, useRef } from "preact/hooks";
 import { ContentWrapperCenterClassName } from "./Panel.jsx";
+import { fs, FONT_SCALE } from "./displayStyle.js";
 import ErrorIcon from "./icons/error.svg";
 
 /**
@@ -93,9 +94,9 @@ const ErrorInfo = styled.div`
     text-align: center;
     margin: 8% 6%;
     padding: 20px 16px;
-    background: rgba(255, 255, 255, 0.82);
-    border: 1px solid rgba(0, 0, 0, 0.06);
-    border-radius: 12px;
+    background: ${(props) => props.theme.blockBg};
+    border: ${(props) => props.theme.blockBorder};
+    border-radius: ${(props) => props.theme.blockRadius}px;
 `;
 
 const StyledErrorIcon = styled(ErrorIcon)`
@@ -108,14 +109,14 @@ const StyledErrorIcon = styled(ErrorIcon)`
 
 const ErrorType = styled.p`
     font-weight: 700;
-    font-size: large;
+    font-size: ${fs(FONT_SCALE.large)};
     color: #ef4444;
     margin: 4px 0;
 `;
 
 const ErrorMessage = styled.p`
-    color: #5f6675;
-    font-size: small;
+    color: ${(props) => props.theme.secondaryColor};
+    font-size: ${fs(FONT_SCALE.small)};
     margin: 2px 0;
     word-break: break-word;
 `;

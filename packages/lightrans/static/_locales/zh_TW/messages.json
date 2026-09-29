@@ -1,4 +1,128 @@
 {
+    "DisplayStyleSetting": {
+        "message": "劃詞結果框樣式",
+        "description": "译文显示样式设置"
+    },
+    "PanelAppearance": {
+        "message": "面板外觀",
+        "description": "譯文顯示樣式設定"
+    },
+    "PanelStyleGlass": {
+        "message": "毛玻璃",
+        "description": "譯文顯示樣式設定"
+    },
+    "PanelStyleSolid": {
+        "message": "純色",
+        "description": "譯文顯示樣式設定"
+    },
+    "PanelStyleDark": {
+        "message": "深色",
+        "description": "譯文顯示樣式設定"
+    },
+    "TextColorSetting": {
+        "message": "文字顏色",
+        "description": "譯文顯示樣式設定"
+    },
+    "TextColorAuto": {
+        "message": "跟隨外觀",
+        "description": "譯文顯示樣式設定"
+    },
+    "TextColorDark": {
+        "message": "深色文字",
+        "description": "譯文顯示樣式設定"
+    },
+    "TextColorLight": {
+        "message": "淺色文字",
+        "description": "譯文顯示樣式設定"
+    },
+    "FontSizeSetting": {
+        "message": "字號",
+        "description": "譯文顯示樣式設定"
+    },
+    "FontSizeSmall": {
+        "message": "小",
+        "description": "譯文顯示樣式設定"
+    },
+    "FontSizeMedium": {
+        "message": "中",
+        "description": "譯文顯示樣式設定"
+    },
+    "FontSizeLarge": {
+        "message": "大",
+        "description": "譯文顯示樣式設定"
+    },
+    "CornerRadiusSetting": {
+        "message": "圓角",
+        "description": "譯文顯示樣式設定"
+    },
+    "CornerRadiusNone": {
+        "message": "直角",
+        "description": "譯文顯示樣式設定"
+    },
+    "CornerRadiusSmall": {
+        "message": "小",
+        "description": "譯文顯示樣式設定"
+    },
+    "CornerRadiusMedium": {
+        "message": "中",
+        "description": "譯文顯示樣式設定"
+    },
+    "CornerRadiusLarge": {
+        "message": "大",
+        "description": "譯文顯示樣式設定"
+    },
+    "PanelShadowSetting": {
+        "message": "面板陰影",
+        "description": "譯文顯示樣式設定"
+    },
+    "PageTranslationStyleSetting": {
+        "message": "整頁翻譯譯文樣式",
+        "description": "整页翻译译文样式设置"
+    },
+    "PageThemeSetting": {
+        "message": "譯文外觀",
+        "description": "整页翻译译文样式设置"
+    },
+    "PageThemeBlock": {
+        "message": "色塊",
+        "description": "整页翻译译文样式设置"
+    },
+    "PageThemeHighlight": {
+        "message": "高亮",
+        "description": "整页翻译译文样式设置"
+    },
+    "PageThemeUnderline": {
+        "message": "底線",
+        "description": "整页翻译译文样式设置"
+    },
+    "PageThemePlain": {
+        "message": "純文字",
+        "description": "整页翻译译文样式设置"
+    },
+    "AccentColorSetting": {
+        "message": "強調色",
+        "description": "整页翻译译文样式设置"
+    },
+    "AccentBlue": {
+        "message": "藍",
+        "description": "整页翻译译文样式设置"
+    },
+    "AccentGreen": {
+        "message": "綠",
+        "description": "整页翻译译文样式设置"
+    },
+    "AccentOrange": {
+        "message": "橙",
+        "description": "整页翻译译文样式设置"
+    },
+    "AccentGray": {
+        "message": "灰",
+        "description": "整页翻译译文样式设置"
+    },
+    "PageDarkModeSetting": {
+        "message": "深色網頁適配",
+        "description": "整页翻译译文样式设置"
+    },
     "AppName": {
         "message": "輕量翻譯",
         "description": "應用名稱"

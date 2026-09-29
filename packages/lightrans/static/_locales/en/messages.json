@@ -1,4 +1,128 @@
 {
+    "DisplayStyleSetting": {
+        "message": "Result panel style",
+        "description": "译文显示样式设置"
+    },
+    "PanelAppearance": {
+        "message": "Panel appearance",
+        "description": "Translation display style settings"
+    },
+    "PanelStyleGlass": {
+        "message": "Frosted glass",
+        "description": "Translation display style settings"
+    },
+    "PanelStyleSolid": {
+        "message": "Solid",
+        "description": "Translation display style settings"
+    },
+    "PanelStyleDark": {
+        "message": "Dark",
+        "description": "Translation display style settings"
+    },
+    "TextColorSetting": {
+        "message": "Text color",
+        "description": "Translation display style settings"
+    },
+    "TextColorAuto": {
+        "message": "Follow panel",
+        "description": "Translation display style settings"
+    },
+    "TextColorDark": {
+        "message": "Dark text",
+        "description": "Translation display style settings"
+    },
+    "TextColorLight": {
+        "message": "Light text",
+        "description": "Translation display style settings"
+    },
+    "FontSizeSetting": {
+        "message": "Font size",
+        "description": "Translation display style settings"
+    },
+    "FontSizeSmall": {
+        "message": "Small",
+        "description": "Translation display style settings"
+    },
+    "FontSizeMedium": {
+        "message": "Medium",
+        "description": "Translation display style settings"
+    },
+    "FontSizeLarge": {
+        "message": "Large",
+        "description": "Translation display style settings"
+    },
+    "CornerRadiusSetting": {
+        "message": "Corner radius",
+        "description": "Translation display style settings"
+    },
+    "CornerRadiusNone": {
+        "message": "Square",
+        "description": "Translation display style settings"
+    },
+    "CornerRadiusSmall": {
+        "message": "Small",
+        "description": "Translation display style settings"
+    },
+    "CornerRadiusMedium": {
+        "message": "Medium",
+        "description": "Translation display style settings"
+    },
+    "CornerRadiusLarge": {
+        "message": "Large",
+        "description": "Translation display style settings"
+    },
+    "PanelShadowSetting": {
+        "message": "Panel shadow",
+        "description": "Translation display style settings"
+    },
+    "PageTranslationStyleSetting": {
+        "message": "Page translation style",
+        "description": "整页翻译译文样式设置"
+    },
+    "PageThemeSetting": {
+        "message": "Translation look",
+        "description": "整页翻译译文样式设置"
+    },
+    "PageThemeBlock": {
+        "message": "Block",
+        "description": "整页翻译译文样式设置"
+    },
+    "PageThemeHighlight": {
+        "message": "Highlight",
+        "description": "整页翻译译文样式设置"
+    },
+    "PageThemeUnderline": {
+        "message": "Underline",
+        "description": "整页翻译译文样式设置"
+    },
+    "PageThemePlain": {
+        "message": "Plain text",
+        "description": "整页翻译译文样式设置"
+    },
+    "AccentColorSetting": {
+        "message": "Accent color",
+        "description": "整页翻译译文样式设置"
+    },
+    "AccentBlue": {
+        "message": "Blue",
+        "description": "整页翻译译文样式设置"
+    },
+    "AccentGreen": {
+        "message": "Green",
+        "description": "整页翻译译文样式设置"
+    },
+    "AccentOrange": {
+        "message": "Orange",
+        "description": "整页翻译译文样式设置"
+    },
+    "AccentGray": {
+        "message": "Gray",
+        "description": "整页翻译译文样式设置"
+    },
+    "PageDarkModeSetting": {
+        "message": "Optimize for dark pages",
+        "description": "整页翻译译文样式设置"
+    },
     "AppName": {
         "message": "lightrans",
         "description": "App Name"

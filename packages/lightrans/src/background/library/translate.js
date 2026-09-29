@@ -2,6 +2,7 @@ import { AITranslator } from "@lightrans/translators";
 import { log } from "common/scripts/common.js";
 import { promiseTabs, delayPromise } from "common/scripts/promise.js";
 import { DEFAULT_SETTINGS, getOrSetDefaultSettings } from "common/scripts/settings.js";
+import { resolvePageTranslationStyleCss } from "common/scripts/pageTranslationStyle.js";
 
 class TranslatorManager {
     /**
@@ -491,9 +492,16 @@ class TranslatorManager {
  */
 function translatePage(channel, model) {
     console.log('lightrans: translatePage function called with model:', model);
-    // 读取页面翻译显示模式偏好（原文/译文/对照），决定整页翻译默认行为
-    getOrSetDefaultSettings().then((allSettings) => {
+    // 读取页面翻译偏好：显示模式（原文/译文/对照）与对照模式下的译文样式
+    getOrSetDefaultSettings(
+        ["PageTranslationDisplayMode", "PageTranslationStyle"],
+        DEFAULT_SETTINGS
+    ).then((allSettings) => {
         const pageModeParam = (allSettings && allSettings.PageTranslationDisplayMode) || "translated";
+        // 译文样式在注入前解析成 CSS 文本：注入到页面的函数会被序列化，无法 import 模块
+        const pageStyleCss = resolvePageTranslationStyleCss(
+            allSettings && allSettings.PageTranslationStyle
+        );
         // 获取当前标签页
         promiseTabs.query({ active: true, currentWindow: true }).then((tabs) => {
         const tabId = tabs[0].id;
@@ -503,11 +511,12 @@ function translatePage(channel, model) {
         const modelParam = model || "default";
         
         // 使用 chrome.scripting.executeScript 注入脚本（MV3 已移除 chrome.tabs.executeScript）
-        // 把原内联脚本重构成可序列化的函数，通过 args 传入 pageMode 与 model
-        const injectPageTranslate = (pageMode, model) => {
+        // 把原内联脚本重构成可序列化的函数，通过 args 传入 pageMode、model 与译文样式
+        const injectPageTranslate = (pageMode, model, styleCss) => {
             console.log('lightrans: Page translate script injected');
 
             // 页面翻译显示模式：original(原文) / translated(译文) / bilingual(对照)
+            // styleCss：对照模式下插入页面的译文样式，由 background 预先解析好传入
 
             // 检查document.body是否存在
             if (!document.body) {
@@ -820,7 +829,7 @@ function translatePage(channel, model) {
                                     const span = document.createElement('span');
                                     span.className = 'lightrans-bilingual';
                                     span.textContent = item.translatedText;
-                                    span.style.cssText = 'display:block;margin:2px 0 6px;padding:2px 6px;background:#f5f7fa;border-left:3px solid #2f6bff;color:#3a4252;font-size:0.92em;line-height:1.5;border-radius:4px;';
+                                    span.style.cssText = styleCss || 'display:block;margin:2px 0 6px;padding:2px 6px;background:#f5f7fa;border-left:3px solid #2f6bff;color:#3a4252;font-size:0.92em;line-height:1.5;border-radius:4px;';
                                     if (node.parentNode) {
                                         node.parentNode.insertBefore(span, node.nextSibling);
                                         insertedSpans.push(span);
@@ -909,7 +918,7 @@ function translatePage(channel, model) {
             };
 
             chrome.scripting.executeScript(
-                { target: { tabId }, func: injectPageTranslate, args: [pageModeParam, modelParam] },
+                { target: { tabId }, func: injectPageTranslate, args: [pageModeParam, modelParam, pageStyleCss] },
                 (result) => {
             if (chrome.runtime.lastError) {
                 log(`Chrome runtime error: ${chrome.runtime.lastError}`);

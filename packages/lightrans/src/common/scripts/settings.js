@@ -20,6 +20,19 @@ const DEFAULT_SETTINGS = {
     },
     // Default settings of source language and target language
     languageSetting: { sl: "auto", tl: BROWSER_LANGUAGES_MAP[chrome.i18n.getUILanguage()] },
+    // 划词翻译结果框的显示样式（与整页翻译的 PageTranslationStyle 相互独立）
+    // PanelStyle: 面板外观预设 glass(毛玻璃) / solid(纯色) / dark(深色)
+    // TextColor: 文字颜色 auto(跟随外观) / dark / light
+    // FontSize: 字号 small / medium / large
+    // CornerRadius: 圆角 none / small / medium / large
+    // Shadow: 是否显示面板阴影
+    DisplayStyle: {
+        PanelStyle: "glass",
+        TextColor: "auto",
+        FontSize: "medium",
+        CornerRadius: "medium",
+        Shadow: true,
+    },
     OtherSettings: {
         MutualTranslate: true,
         SelectTranslate: true,
@@ -34,6 +47,19 @@ const DEFAULT_SETTINGS = {
     DefaultPageTranslator: "AITrans",
     // Page translation display mode: "original" / "translated" / "bilingual"
     PageTranslationDisplayMode: "translated",
+    // 整页翻译对照模式下插入页面的译文样式（与划词结果框的 DisplayStyle 相互独立）
+    // Theme: 译文外观 block(色块) / highlight(高亮) / underline(下划线) / plain(纯文字)
+    // Accent: 强调色 blue / green / orange / gray
+    // FontSize: 字号 small / medium / large（相对原文的 0.85 / 0.92 / 1 em）
+    // Radius: 圆角 none / small / medium / large
+    // DarkMode: 深色网页适配，开启后色块与高亮使用深底浅字
+    PageTranslationStyle: {
+        Theme: "block",
+        Accent: "blue",
+        FontSize: "medium",
+        Radius: "small",
+        DarkMode: false,
+    },
     // 翻译服务模式：free（硅基流动免费，走我们的反代服务，零配置免 Key）/ custom（硅基流动自定义，直连官方 + 自有 Key）
     TranslationService: "free",
     // 自定义模式下使用的 SiliconFlow API Key（仅 custom 模式读取）

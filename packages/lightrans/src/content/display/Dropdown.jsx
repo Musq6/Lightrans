@@ -3,6 +3,7 @@ import { h, cloneElement } from "preact";
 import { forwardRef } from "preact/compat";
 import { useState, useRef, useCallback, useEffect } from "preact/hooks";
 import styled, { css } from "styled-components";
+import { fs, FONT_SCALE } from "./displayStyle.js";
 import ArrowDownIcon from "./icons/arrow-down.svg";
 
 /**
@@ -104,12 +105,12 @@ const Menu = styled.ul`
     min-width: 120px;
     margin: 4px 0 0;
     list-style: none;
-    font-size: 14px;
+    font-size: ${fs(FONT_SCALE.dropdown)};
     text-align: left;
-    background-color: rgba(255, 255, 255, 0.96);
-    -webkit-backdrop-filter: blur(12px);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(0, 0, 0, 0.06);
+    background-color: ${(props) => props.theme.menuBg};
+    -webkit-backdrop-filter: ${(props) => props.theme.menuBlur};
+    backdrop-filter: ${(props) => props.theme.menuBlur};
+    border: ${(props) => props.theme.menuBorder};
     border-radius: 10px;
     padding: 6px;
     position: absolute;
@@ -117,7 +118,7 @@ const Menu = styled.ul`
     top: 100%;
     z-index: 6;
     float: left;
-    box-shadow: 0 12px 32px rgba(31, 41, 55, 0.18);
+    box-shadow: ${(props) => props.theme.menuShadow};
 `;
 const Title = styled.a`
     display: flex;
@@ -134,12 +135,12 @@ const Title = styled.a`
     -ms-user-select: none;
     user-select: none;
     padding: 4px 10px;
-    font-size: 14px;
+    font-size: ${fs(FONT_SCALE.dropdown)};
     line-height: 1.5;
     border-radius: 8px;
     transition: color 0.2s linear, background-color 0.2s linear;
-    color: #1f2430;
-    background-color: rgba(0, 0, 0, 0.04);
+    color: ${(props) => props.theme.menuItemColor};
+    background-color: ${(props) => props.theme.iconButtonBg};
     overflow: hidden;
     &:hover {
         color: ${ColorPrimary};
@@ -150,7 +151,7 @@ const Title = styled.a`
     }
 `;
 const StyledArrowDownIcon = styled(ArrowDownIcon)`
-    fill: #5f6368;
+    fill: ${(props) => props.theme.secondaryColor};
     margin-left: 4px;
     transition: fill 0.2s linear;
 `;
@@ -166,12 +167,18 @@ const ActiveStyle = css`
         background-color: rgba(74, 140, 247, 0.1);
     }
 `;
-const InActiveStyle = css`
-    color: #3c4250;
+/**
+ * 未选中项样式：颜色随「译文显示样式」设置变化
+ *
+ * @param {Object} props styled-components 传入的 props
+ * @returns {Object} css 片段
+ */
+const inActiveStyle = (props) => css`
+    color: ${props.theme.menuItemColor};
     border-radius: 6px;
     &:hover {
-        color: #3c4250;
-        background-color: rgba(0, 0, 0, 0.05);
+        color: ${props.theme.menuItemColor};
+        background-color: ${props.theme.menuItemHoverBg};
     }
 `;
 const Item = styled.li`
@@ -188,7 +195,7 @@ const Item = styled.li`
     user-select: none;
     -webkit-transition: color 0.2s linear, background-color 0.2s linear;
     transition: color 0.2s linear, background-color 0.2s linear;
-    ${(props) => (props.active ? ActiveStyle : InActiveStyle)}
+    ${(props) => (props.active ? ActiveStyle : inActiveStyle(props))}
 `;
 /**
  * STYLE FOR THE COMPONENT END

@@ -8,6 +8,7 @@ import Notifier from "./library/notifier/notifier.js";
 import DOMPurify from "dompurify";
 import { checkTimestamp } from "./Panel.jsx";
 import DrawerBlock from "./DrawerBlock.jsx";
+import { fs, FONT_SCALE } from "./displayStyle.js";
 import EditIcon from "./icons/edit.svg";
 import EditDoneIcon from "./icons/edit-done.svg";
 import CopyIcon from "./icons/copy.svg";
@@ -364,12 +365,13 @@ export default function Result(props) {
 const BlockPadding = "10px";
 const BlockMargin = "8px";
 const LightPrimary = "rgba(74, 140, 247, 0.7)";
-const Gray = "#5f6368";
 const BlockContentDrawerHeight = 150; // drawer height for blocks
 const TextContentDrawerHeight = 50; // drawer height for texts
 
 /**
  * basic style for a block used to display content
+ *
+ * 底色 / 边框 / 圆角 / 阴影来自「译文显示样式」设置
  */
 export const Block = styled.div`
     width: calc(100% - 2 * ${BlockMargin});
@@ -381,10 +383,10 @@ export const Block = styled.div`
     padding: ${BlockPadding};
     margin: ${BlockMargin};
     margin-top: 0;
-    background-color: rgba(255, 255, 255, 0.82);
-    border: 1px solid rgba(0, 0, 0, 0.06);
-    border-radius: 12px;
-    box-shadow: 0 1px 2px rgba(31, 41, 55, 0.05);
+    background-color: ${(props) => props.theme.blockBg};
+    border: ${(props) => props.theme.blockBorder};
+    border-radius: ${(props) => props.theme.blockRadius}px;
+    box-shadow: ${(props) => props.theme.blockShadow};
     line-height: 130%;
     letter-spacing: 0.01em;
     min-height: auto;
@@ -394,7 +396,7 @@ export const Block = styled.div`
 const Source = styled(Block)`
     font-weight: normal;
     white-space: pre-wrap;
-    border-left: 3px solid rgba(0, 0, 0, 0.12);
+    border-left: 3px solid ${(props) => props.theme.hairline};
 `;
 
 const Target = styled(Block)`
@@ -419,7 +421,7 @@ const TextLine = styled.div`
 const StyledEditIcon = styled(EditIcon)`
     width: 18px;
     height: 18px;
-    fill: ${Gray};
+    fill: ${(props) => props.theme.secondaryColor};
     flex-shrink: 0;
     margin-left: 2px;
     transition: fill 0.2s linear;
@@ -431,7 +433,7 @@ const StyledEditIcon = styled(EditIcon)`
 const StyledEditDoneIcon = styled(EditDoneIcon)`
     width: 18px;
     height: 18px;
-    fill: ${Gray};
+    fill: ${(props) => props.theme.secondaryColor};
     flex-shrink: 0;
     margin-left: 2px;
     transition: fill 0.2s linear;
@@ -443,7 +445,7 @@ const StyledEditDoneIcon = styled(EditDoneIcon)`
 const StyledCopyIcon = styled(CopyIcon)`
     width: 20px;
     height: 20px;
-    fill: ${Gray};
+    fill: ${(props) => props.theme.secondaryColor};
     flex-shrink: 0;
     margin-left: 2px;
     transition: fill 0.2s linear;
@@ -462,7 +464,7 @@ const BlockHead = styled.div`
 `;
 
 const BlockHeadTitle = styled.span`
-    font-size: small;
+    font-size: ${fs(FONT_SCALE.small)};
     ${(props) =>
         `${props.theme.textDirection === "ltr" ? "margin-left" : "margin-right"}:${BlockPadding}`}
 `;
@@ -482,7 +484,7 @@ const BlockSplitLine = styled.div`
     margin: 5px 0;
     flex-shrink: 0;
     border: none;
-    background: rgba(0, 0, 0, 0.25);
+    background: ${(props) => props.theme.hairlineStrong};
 `;
 
 const BlockContent = styled(DrawerBlock)`
@@ -499,8 +501,8 @@ const DetailHeadSpot = styled(BlockHeadSpot)`
 `;
 
 const Position = styled.div`
-    color: ${Gray};
-    font-size: smaller;
+    color: ${(props) => props.theme.secondaryColor};
+    font-size: ${fs(FONT_SCALE.small)};
 `;
 
 const DetailMeaning = styled.div`
@@ -509,8 +511,8 @@ const DetailMeaning = styled.div`
 `;
 
 const SynonymTitle = styled.div`
-    color: ${Gray};
-    font-size: small;
+    color: ${(props) => props.theme.secondaryColor};
+    font-size: ${fs(FONT_SCALE.small)};
     ${(props) => (props.theme.textDirection === "ltr" ? "margin-left" : "margin-right")}: 10px;
 `;
 
@@ -533,10 +535,10 @@ const SynonymLine = styled.div`
 const SynonymWord = styled.span`
     padding: 2px 10px;
     margin: 0 2px 3px;
-    border: 1px solid rgba(0, 0, 0, 0.12);
+    border: 1px solid ${(props) => props.theme.hairline};
     border-radius: 32px;
     cursor: pointer;
-    font-size: small;
+    font-size: ${fs(FONT_SCALE.small)};
 `;
 
 const Definition = styled(Block)``;
@@ -546,7 +548,7 @@ const DefinitionHeadSpot = styled(BlockHeadSpot)`
 `;
 
 const DefinitionExample = styled(DetailMeaning)`
-    color: #5f6368;
+    color: ${(props) => props.theme.secondaryColor};
 `;
 
 const Example = styled(Block)``;
@@ -563,16 +565,16 @@ const ExampleList = styled.ol`
 
 const ExampleItem = styled.li`
     padding: 5px 0;
-    font-size: small;
+    font-size: ${fs(FONT_SCALE.small)};
 `;
 
 const ExampleSource = styled.div`
-    font-size: medium;
+    font-size: ${fs(FONT_SCALE.medium)};
 `;
 
 const ExampleTarget = styled.div`
     padding-top: 5px;
-    font-size: medium;
+    font-size: ${fs(FONT_SCALE.medium)};
 `;
 
 /**
