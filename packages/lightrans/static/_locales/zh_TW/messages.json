@@ -123,6 +123,26 @@
         "message": "深色網頁適配",
         "description": "整页翻译译文样式设置"
     },
+    "PageTranslationScopeSetting": {
+        "message": "整頁翻譯範圍",
+        "description": "整页翻译范围设置"
+    },
+    "SkipInvisibleSetting": {
+        "message": "跳過不可見內容",
+        "description": "整页翻译范围设置"
+    },
+    "SkipStickySetting": {
+        "message": "跳過吸頂導航與懸浮層",
+        "description": "整页翻译范围设置"
+    },
+    "SkipSemanticChromeSetting": {
+        "message": "跳過導航、頁首頁尾與側欄",
+        "description": "整页翻译范围设置"
+    },
+    "PageTranslationScopeHint": {
+        "message": "以上只影響哪些內容參與翻譯，不改動頁面本身的顯示；修改後需要重新翻譯本頁才會生效。",
+        "description": "整页翻译范围设置"
+    },
     "AppName": {
         "message": "輕量翻譯",
         "description": "應用名稱"

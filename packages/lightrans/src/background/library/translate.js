@@ -3,6 +3,7 @@ import { log } from "common/scripts/common.js";
 import { promiseTabs, delayPromise } from "common/scripts/promise.js";
 import { DEFAULT_SETTINGS, getOrSetDefaultSettings } from "common/scripts/settings.js";
 import { resolvePageTranslationStyleCss } from "common/scripts/pageTranslationStyle.js";
+import { resolvePageTranslationScope } from "common/scripts/pageTranslationScope.js";
 
 class TranslatorManager {
     /**
@@ -492,15 +493,19 @@ class TranslatorManager {
  */
 function translatePage(channel, model) {
     console.log('lightrans: translatePage function called with model:', model);
-    // 读取页面翻译偏好：显示模式（原文/译文/对照）与对照模式下的译文样式
+    // 读取页面翻译偏好：显示模式（原文/译文/对照）、对照模式下的译文样式、翻译范围
     getOrSetDefaultSettings(
-        ["PageTranslationDisplayMode", "PageTranslationStyle"],
+        ["PageTranslationDisplayMode", "PageTranslationStyle", "PageTranslationScope"],
         DEFAULT_SETTINGS
     ).then((allSettings) => {
         const pageModeParam = (allSettings && allSettings.PageTranslationDisplayMode) || "translated";
         // 译文样式在注入前解析成 CSS 文本：注入到页面的函数会被序列化，无法 import 模块
         const pageStyleCss = resolvePageTranslationStyleCss(
             allSettings && allSettings.PageTranslationStyle
+        );
+        // 翻译范围同理：解析成普通对象后随 args 传入，注入函数里不读设置
+        const pageScopeParam = resolvePageTranslationScope(
+            allSettings && allSettings.PageTranslationScope
         );
         // 获取当前标签页
         promiseTabs.query({ active: true, currentWindow: true }).then((tabs) => {
@@ -511,12 +516,13 @@ function translatePage(channel, model) {
         const modelParam = model || "default";
         
         // 使用 chrome.scripting.executeScript 注入脚本（MV3 已移除 chrome.tabs.executeScript）
-        // 把原内联脚本重构成可序列化的函数，通过 args 传入 pageMode、model 与译文样式
-        const injectPageTranslate = (pageMode, model, styleCss) => {
+        // 把原内联脚本重构成可序列化的函数，通过 args 传入 pageMode、model、译文样式与翻译范围
+        const injectPageTranslate = (pageMode, model, styleCss, pageScope) => {
             console.log('lightrans: Page translate script injected');
 
             // 页面翻译显示模式：original(原文) / translated(译文) / bilingual(对照)
             // styleCss：对照模式下插入页面的译文样式，由 background 预先解析好传入
+            // pageScope：翻译范围开关（跳过隐藏内容 / 吸顶悬浮层 / 站点框架），同样由 background 传入
 
             // 检查document.body是否存在
             if (!document.body) {
@@ -533,6 +539,136 @@ function translatePage(channel, model) {
                     // 存储原始文本内容，用于翻译和恢复
                     window.lightransOriginalTextNodes = [];
                     
+                    // ===== 翻译范围（轻量档）=====
+                    // 目标：把站点框架（页眉、导航、侧栏、吸顶栏、隐藏内容）排除在翻译之外，
+                    // 否则页面顶部与非正文区域会被翻译得杂乱。
+                    // 只做「排除」，不改动收集后的索引体系（allTexts / textIndices /
+                    // lightransOriginalTextNodes / 视口排序），因此与显示模式、恢复原文完全正交。
+                    const scopeOn = {
+                        invisible: !pageScope || pageScope.SkipInvisible !== false,
+                        sticky: !pageScope || pageScope.SkipSticky !== false,
+                        chrome: !pageScope || pageScope.SkipSemanticChrome !== false,
+                    };
+
+                    // getComputedStyle 很贵，而大页面上文本节点有几千个 —— 按元素缓存，
+                    // 保证每个元素最多只取一次计算样式。
+                    const styleCache = new WeakMap();
+                    function styleOf(el) {
+                        let s = styleCache.get(el);
+                        if (!s) {
+                            s = window.getComputedStyle(el);
+                            styleCache.set(el, s);
+                        }
+                        return s;
+                    }
+
+                    // 语义标签 + ARIA 角色：站点框架的规范写法
+                    const CHROME_SELECTOR = 'nav, header, footer, aside, [role="navigation"], [role="banner"], [role="contentinfo"], [role="complementary"], [role="menu"], [role="menubar"], [role="search"], [role="tablist"], [role="toolbar"], [role="dialog"], [role="alertdialog"]';
+                    // class/id 关键词：要求词边界，避免误伤 article-header / news-header 这类命名
+                    // 因此这里刻意不收 header，站点页眉由上面的语义选择器负责
+                    const CHROME_TOKEN_RE = /(^|[-_ ])(nav|navbar|navigation|mainnav|subnav|topnav|topbar|menubar|menu|sidebar|breadcrumb|breadcrumbs|toolbar|pagination|pager|copyright)([-_ ]|$)/i;
+
+                    function isSemanticChrome(el) {
+                        const hit = el.closest ? el.closest(CHROME_SELECTOR) : null;
+                        if (hit) {
+                            // 带 role 的一律算框架
+                            if (hit.hasAttribute && hit.hasAttribute("role")) return true;
+                            // 但 <header>/<footer>/<nav>/<aside> 落在正文内部时通常是内容本身
+                            // （文章标题区、文内目录、拉引），不算站点框架。
+                            // <aside> 例外：<main> 里的 aside 基本都还是侧栏，只有 article 内的才算内容。
+                            const contentGuard =
+                                hit.tagName === "ASIDE" ? "article" : 'article, main, [role="main"]';
+                            return !(hit.closest && hit.closest(contentGuard));
+                        }
+                        // 中文站点普遍是 div + 类名、没有语义标签，退回关键词匹配
+                        let cur = el;
+                        let depth = 0;
+                        while (cur && cur !== document.body && depth < 12) {
+                            const cls = typeof cur.className === "string" ? cur.className : "";
+                            const sig = cls + " " + (cur.id || "");
+                            if (sig.trim() && CHROME_TOKEN_RE.test(sig)) return true;
+                            cur = cur.parentElement;
+                            depth++;
+                        }
+                        return false;
+                    }
+
+                    // 不可见内容：翻译了也看不到，纯属浪费配额
+                    function isInvisible(el) {
+                        if (typeof el.checkVisibility === "function") {
+                            try {
+                                // 一次调用即可判断祖先链上的 display / visibility / opacity
+                                return !el.checkVisibility({
+                                    checkOpacity: true,
+                                    checkVisibilityCSS: true,
+                                });
+                            } catch (e) {
+                                // 旧实现的 checkVisibility 不认这些选项，退回手动判断
+                            }
+                        }
+                        let cur = el;
+                        while (cur && cur.nodeType === 1) {
+                            const st = styleOf(cur);
+                            if (
+                                st.display === "none" ||
+                                st.visibility === "hidden" ||
+                                st.visibility === "collapse"
+                            ) {
+                                return true;
+                            }
+                            if (parseFloat(st.opacity) === 0) return true;
+                            cur = cur.parentElement;
+                        }
+                        return false;
+                    }
+
+                    // 吸顶导航 / 悬浮层。必须排除「占满视口的固定容器」——
+                    // 有些站点把整页装在一个 position:fixed 的滚动容器里，一律过滤会导致整页不翻译。
+                    function isFixedOverlay(el) {
+                        let cur = el;
+                        let depth = 0;
+                        while (cur && cur !== document.body && depth < 15) {
+                            const pos = styleOf(cur).position;
+                            if (pos === "fixed" || pos === "sticky") {
+                                try {
+                                    const rect = cur.getBoundingClientRect();
+                                    const vw = window.innerWidth || 1;
+                                    const vh = window.innerHeight || 1;
+                                    const area = Math.max(0, rect.width) * Math.max(0, rect.height);
+                                    return area / (vw * vh) < 0.6;
+                                } catch (e) {
+                                    return true;
+                                }
+                            }
+                            cur = cur.parentElement;
+                            depth++;
+                        }
+                        return false;
+                    }
+
+                    // 判定结果按元素缓存：同一个父元素下的多个文本节点（如一个 <p> 里的若干段）
+                    // 只算一次；祖先一旦被判定为排除，其后代直接继承，不必重复向上遍历
+                    // （对三个开关都成立：祖先在框架/隐藏/吸顶容器里，后代必然也在）。
+                    const scopeCache = new WeakMap();
+                    function isOutOfScope(el) {
+                        if (!el || el.nodeType !== 1 || el === document.body) return false;
+                        const cached = scopeCache.get(el);
+                        if (cached !== undefined) return cached;
+
+                        const parent = el.parentElement;
+                        let result;
+                        if (parent && parent !== document.body && isOutOfScope(parent)) {
+                            result = true;
+                        } else {
+                            result =
+                                (scopeOn.chrome && isSemanticChrome(el)) ||
+                                (scopeOn.invisible && isInvisible(el)) ||
+                                (scopeOn.sticky && isFixedOverlay(el));
+                        }
+                        scopeCache.set(el, result);
+                        return result;
+                    }
+
                     // 获取网页中所有文本节点
                     function getAllTextNodes(root) {
                         const textNodes = [];
@@ -540,10 +676,13 @@ function translatePage(channel, model) {
                             const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
                                 acceptNode: function(node) {
                                     // 过滤掉空文本节点和特定元素内的文本
-                                    if (node.nodeValue.trim() && !node.parentNode.closest('script, style, noscript, iframe, svg, canvas, input, textarea, select, img, picture, video, audio, embed, object')) {
-                                        return NodeFilter.FILTER_ACCEPT;
+                                    if (!node.nodeValue.trim()) return NodeFilter.FILTER_SKIP;
+                                    if (node.parentNode.closest('script, style, noscript, iframe, svg, canvas, input, textarea, select, img, picture, video, audio, embed, object')) {
+                                        return NodeFilter.FILTER_SKIP;
                                     }
-                                    return NodeFilter.FILTER_SKIP;
+                                    // 再按翻译范围排除站点框架 / 隐藏内容 / 吸顶悬浮层
+                                    if (isOutOfScope(node.parentElement)) return NodeFilter.FILTER_SKIP;
+                                    return NodeFilter.FILTER_ACCEPT;
                                 }
                             }, false);
                             let node;
@@ -951,7 +1090,7 @@ function translatePage(channel, model) {
             };
 
             chrome.scripting.executeScript(
-                { target: { tabId }, func: injectPageTranslate, args: [pageModeParam, modelParam, pageStyleCss] },
+                { target: { tabId }, func: injectPageTranslate, args: [pageModeParam, modelParam, pageStyleCss, pageScopeParam] },
                 (result) => {
             if (chrome.runtime.lastError) {
                 log(`Chrome runtime error: ${chrome.runtime.lastError}`);

@@ -60,6 +60,15 @@ const DEFAULT_SETTINGS = {
         Radius: "small",
         DarkMode: false,
     },
+    // 整页翻译范围：决定页面里哪些文本参与翻译（与译文样式相互独立；改动后需重新翻译本页才生效）
+    // SkipInvisible: 跳过不可见内容（display:none / visibility:hidden / opacity:0 / aria-hidden）
+    // SkipSticky: 跳过吸顶导航与悬浮层（position: fixed / sticky，且未占满视口）
+    // SkipSemanticChrome: 跳过导航、页眉页脚、侧栏等站点框架（语义标签 / ARIA 角色 / class-id 关键词）
+    PageTranslationScope: {
+        SkipInvisible: true,
+        SkipSticky: true,
+        SkipSemanticChrome: true,
+    },
     // 翻译服务模式：free（硅基流动免费，走我们的反代服务，零配置免 Key）/ custom（硅基流动自定义，直连官方 + 自有 Key）
     TranslationService: "free",
     // 自定义模式下使用的 SiliconFlow API Key（仅 custom 模式读取）

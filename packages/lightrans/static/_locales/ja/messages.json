@@ -123,6 +123,26 @@
         "message": "ダークページ向け",
         "description": "整页翻译译文样式设置"
     },
+    "PageTranslationScopeSetting": {
+        "message": "ページ翻訳の範囲",
+        "description": "整页翻译范围设置"
+    },
+    "SkipInvisibleSetting": {
+        "message": "非表示の内容をスキップ",
+        "description": "整页翻译范围设置"
+    },
+    "SkipStickySetting": {
+        "message": "追従ヘッダーとフローティングバーをスキップ",
+        "description": "整页翻译范围设置"
+    },
+    "SkipSemanticChromeSetting": {
+        "message": "ナビ・ヘッダー・サイドバーをスキップ",
+        "description": "整页翻译范围设置"
+    },
+    "PageTranslationScopeHint": {
+        "message": "翻訳する範囲だけを変更します（ページの見た目は変わりません）。変更後はページを再翻訳してください。",
+        "description": "整页翻译范围设置"
+    },
     "AppName": {
         "message": "lightrans",
         "description": "アプリケーション名"

@@ -123,6 +123,26 @@
         "message": "Optimize for dark pages",
         "description": "整页翻译译文样式设置"
     },
+    "PageTranslationScopeSetting": {
+        "message": "Page translation scope",
+        "description": "整页翻译范围设置"
+    },
+    "SkipInvisibleSetting": {
+        "message": "Skip invisible content",
+        "description": "整页翻译范围设置"
+    },
+    "SkipStickySetting": {
+        "message": "Skip sticky and floating bars",
+        "description": "整页翻译范围设置"
+    },
+    "SkipSemanticChromeSetting": {
+        "message": "Skip navigation, headers and sidebars",
+        "description": "整页翻译范围设置"
+    },
+    "PageTranslationScopeHint": {
+        "message": "These options only change what gets translated, not how the page looks. Re-translate the page for changes to take effect.",
+        "description": "整页翻译范围设置"
+    },
     "AppName": {
         "message": "lightrans",
         "description": "App Name"

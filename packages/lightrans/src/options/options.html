@@ -495,6 +495,70 @@
                             ></label>
                         </div>
                     </div>
+
+                    <!-- 整页翻译范围：哪些内容参与翻译（只做排除，改动后需重新翻译本页） -->
+                    <label
+                        class="setting-subtitle i18n"
+                        data-i18n-name="PageTranslationScopeSetting"
+                    ></label>
+                    <div class="row">
+                        <div class="column">
+                            <input
+                                type="checkbox"
+                                value="page-skip-invisible"
+                                setting-type="switch"
+                                setting-path="PageTranslationScope SkipInvisible"
+                                class="switch"
+                                id="page-skip-invisible"
+                            />
+                            <span class="space"></span>
+                            <label
+                                for="page-skip-invisible"
+                                class="checked-label i18n"
+                                data-i18n-name="SkipInvisibleSetting"
+                            ></label>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="column">
+                            <input
+                                type="checkbox"
+                                value="page-skip-sticky"
+                                setting-type="switch"
+                                setting-path="PageTranslationScope SkipSticky"
+                                class="switch"
+                                id="page-skip-sticky"
+                            />
+                            <span class="space"></span>
+                            <label
+                                for="page-skip-sticky"
+                                class="checked-label i18n"
+                                data-i18n-name="SkipStickySetting"
+                            ></label>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="column">
+                            <input
+                                type="checkbox"
+                                value="page-skip-chrome"
+                                setting-type="switch"
+                                setting-path="PageTranslationScope SkipSemanticChrome"
+                                class="switch"
+                                id="page-skip-chrome"
+                            />
+                            <span class="space"></span>
+                            <label
+                                for="page-skip-chrome"
+                                class="checked-label i18n"
+                                data-i18n-name="SkipSemanticChromeSetting"
+                            ></label>
+                        </div>
+                    </div>
+                    <p
+                        class="setting-hint i18n"
+                        data-i18n-name="PageTranslationScopeHint"
+                    ></p>
                 </div>
 
                 <label
