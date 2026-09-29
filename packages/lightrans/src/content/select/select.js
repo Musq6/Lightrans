@@ -74,6 +74,8 @@ function renderButton() {
     );
     Object.assign(translationButtonContainer.contentDocument?.body.style || {}, CleanStyle);
     translationButton.addEventListener("mousedown", buttonClickHandler);
+    // 定制功能1：鼠标移动到悬浮翻译按钮时即触发翻译，无需点击
+    translationButton.addEventListener("mouseenter", buttonHoverHandler);
     translationButton.addEventListener("contextmenu", (e) => e.preventDefault());
 }
 translationButtonContainer.addEventListener("load", renderButton);
@@ -172,6 +174,18 @@ function buttonClickHandler(event) {
     if (event.button === 0) {
         translateSubmit();
     }
+}
+
+/**
+ * 定制功能1：处理鼠标移动到悬浮翻译按钮的事件
+ * 鼠标进入按钮区域即直接触发翻译，替代原来的点击触发
+ *
+ * @param {MouseEvent} event 鼠标进入(mouseenter)事件
+ */
+function buttonHoverHandler(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    translateSubmit();
 }
 
 /**

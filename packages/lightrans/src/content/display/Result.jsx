@@ -319,7 +319,8 @@ export default function Result(props) {
             // Set default content filter values
             setContentFilter({
                 mainMeaning: true,
-                originalText: true,
+                // 定制功能2：划词翻译结果只显示译文，不显示原文
+                originalText: false,
                 detailedMeanings: true,
                 definitions: true,
                 examples: true
