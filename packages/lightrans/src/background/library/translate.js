@@ -663,6 +663,26 @@ function translatePage(channel, model) {
 
                     console.log('lightrans: Packed', allTexts.length, 'texts into', tasks.length, 'tasks (viewport first:', textInViewport.filter(Boolean).length, 'texts)');
                     
+                    // 当前显示模式。工具栏上的按钮可以随时切换，因此它必须是可变的；
+                    // pageMode 只是注入时的初始值，此后所有渲染判断一律读 currentMode，
+                    // 否则「翻译进行中切换模式」会被后续批次按旧模式覆盖回去。
+                    let currentMode = pageMode;
+
+                    // 判断某个节点是否已是本扩展插入的对照译文 span
+                    function isBilingualSpan(el) {
+                        return !!(el && el.nodeType === 1 && el.classList &&
+                            el.classList.contains('lightrans-bilingual'));
+                    }
+
+                    // 构造对照模式下插入页面的译文 span（样式由 background 预先算好传入）
+                    function makeBilingualSpan(text) {
+                        const span = document.createElement('span');
+                        span.className = 'lightrans-bilingual';
+                        span.textContent = text;
+                        span.style.cssText = styleCss || 'display:block;margin:2px 0 6px;padding:2px 6px;background:#f5f7fa;border-left:3px solid #2f6bff;color:#3a4252;font-size:0.92em;line-height:1.5;border-radius:4px;';
+                        return span;
+                    }
+
                     // 替换已翻译的文本节点
                     function replaceTranslatedNodes() {
                         let replacedCount = 0;
@@ -675,12 +695,25 @@ function translatePage(channel, model) {
                                 if (window.lightransOriginalTextNodes && window.lightransOriginalTextNodes[index]) {
                                     window.lightransOriginalTextNodes[index].translatedText = translatedTexts[textIndex];
                                 }
-                                // 仅在「译文」模式下就地替换文本节点
-                                if (pageMode === 'translated' && node.nodeValue !== translatedTexts[textIndex]) {
-                                    node.nodeValue = translatedTexts[textIndex];
+                                if (currentMode === 'translated') {
+                                    // 「译文」模式：就地替换文本节点
+                                    if (node.nodeValue !== translatedTexts[textIndex]) {
+                                        node.nodeValue = translatedTexts[textIndex];
+                                        replacedCount++;
+                                        totalReplaced++;
+                                    }
+                                } else if (
+                                    currentMode === 'bilingual' &&
+                                    node.parentNode &&
+                                    !isBilingualSpan(node.nextSibling)
+                                ) {
+                                    // 「对照」模式：原文保持不动，在它后面补一段译文
+                                    const span = makeBilingualSpan(translatedTexts[textIndex]);
+                                    node.parentNode.insertBefore(span, node.nextSibling);
+                                    insertedSpans.push(span);
                                     replacedCount++;
-                                    totalReplaced++;
                                 }
+                                // 「原文」模式：什么都不做，节点保持原样
                             }
                         });
 
@@ -730,7 +763,10 @@ function translatePage(channel, model) {
                         if (totalTranslated >= allTexts.length) {
                             console.log('lightrans: All texts translated, total replaced:', totalReplaced, 'nodes');
                             if (bannerTitleEl) bannerTitleEl.textContent = 'Lightrans 已翻译此页';
-                            applyMode(pageMode);
+                            // 全部完成后按「当前」模式做一次完整重渲染，统一补齐各节点的最终状态。
+                            // 注意用 currentMode 而不是注入时的 pageMode，否则用户中途切到「对照」
+                            // 会被这一句按初始模式（默认 translated）覆盖回去。
+                            applyMode(currentMode);
                         }
                     }
 
@@ -813,6 +849,8 @@ function translatePage(channel, model) {
 
                     // 根据显示模式渲染页面：原文 / 译文 / 对照
                     function applyMode(mode) {
+                        // 记住当前模式：工具栏点击与结束时的最终渲染都经这里，读同一个来源
+                        currentMode = mode;
                         const originals = window.lightransOriginalTextNodes || [];
                         // 先清除已插入的对照译文 span
                         insertedSpans.forEach((sp) => {
@@ -825,15 +863,10 @@ function translatePage(channel, model) {
                                 const node = item && item.node;
                                 if (!node) return;
                                 node.nodeValue = item.originalText;
-                                if (item.translatedText) {
-                                    const span = document.createElement('span');
-                                    span.className = 'lightrans-bilingual';
-                                    span.textContent = item.translatedText;
-                                    span.style.cssText = styleCss || 'display:block;margin:2px 0 6px;padding:2px 6px;background:#f5f7fa;border-left:3px solid #2f6bff;color:#3a4252;font-size:0.92em;line-height:1.5;border-radius:4px;';
-                                    if (node.parentNode) {
-                                        node.parentNode.insertBefore(span, node.nextSibling);
-                                        insertedSpans.push(span);
-                                    }
+                                if (item.translatedText && node.parentNode) {
+                                    const span = makeBilingualSpan(item.translatedText);
+                                    node.parentNode.insertBefore(span, node.nextSibling);
+                                    insertedSpans.push(span);
                                 }
                             });
                         } else if (mode === 'original') {
