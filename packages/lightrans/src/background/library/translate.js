@@ -398,11 +398,12 @@ class TranslatorManager {
     }
     
     /**
-     * Update the translate page context menu with available AI models.
+     * Update the "translate page" context menu.
+     *
+     * 定制：菜单不再附带模型二级选项，点击后由 translatePage 使用设置中选定的模型。
      */
     updateTranslatePageMenu() {
-        // 获取可用的AI模型列表
-        const availableModels = this.getAvailableAIModels();
+        // 定制：不再需要模型列表，点击菜单直接使用设置中选定的模型
         
         // 确保 chrome.contextMenus 可用时才创建菜单
         if (chrome.contextMenus) {
@@ -467,21 +468,12 @@ class TranslatorManager {
                     });
                     
                     // 创建翻译此页主菜单
+                    // 定制：不再创建模型子菜单，点击该项直接使用设置中选择的模型
                     chrome.contextMenus.create({
                         id: "translate_page",
                         title: chrome.i18n.getMessage("TranslatePage"),
                         contexts: ["page"],
                         enabled: true,
-                    });
-                    
-                    // 创建模型子菜单
-                    availableModels.forEach(model => {
-                        chrome.contextMenus.create({
-                            id: `translate_page_${model}`,
-                            title: model,
-                            parentId: "translate_page",
-                            contexts: ["page"],
-                        });
                     });
                 });
             } catch (error) {

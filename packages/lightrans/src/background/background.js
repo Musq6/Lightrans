@@ -173,14 +173,13 @@ try {
         const onClicked = contextMenus.onClicked;
         if (onClicked) {
             onClicked.addListener((info, tab) => {
-                // 检查是否是模型子菜单的点击事件
-                if (info && info.menuItemId && info.menuItemId.startsWith("translate_page_")) {
-                    // 从菜单项ID中提取模型名称
-                    const model = info.menuItemId.replace("translate_page_", "");
-                    console.log('lightrans: translate_page model submenu clicked, model:', model);
-                    translatePage(channel, model);
-                } else if (info && info.menuItemId) {
+                if (info && info.menuItemId) {
                     switch (info.menuItemId) {
+                        case "translate_page":
+                            // 定制：点击「翻译此页面」直接使用设置中选择的模型，
+                            // 不再弹出模型二级菜单（translatePage 不传 model 即走设置模型）
+                            translatePage(channel);
+                            break;
                         case "translate":
                             if (channel && tab && tab.id) {
                                 channel
