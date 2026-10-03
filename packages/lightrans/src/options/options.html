@@ -99,19 +99,30 @@
                      单个 setting-path 表达不了，因此由 options.js 整份读写 CustomProviders。
                      本节所有 input 也都不参与声明式绑定（bootstrap 已跳过无 setting-path 的元素）。 -->
                 <div id="provider-section" style="display: none;">
-                    <div class="row">
-                        <div class="column" style="flex: 1 1 auto; min-width: 0;">
-                            <label
-                                class="checked-label"
-                                style="justify-content: flex-start; gap: 8px; width: 100%;"
-                            >
-                                <span class="i18n" data-i18n-name="ProviderCurrent"></span>
-                                <select id="provider-select" style="flex: 1 1 auto; min-width: 0;"></select>
-                                <span class="space"></span>
-                                <button type="button" id="provider-add" class="option-button i18n" data-i18n-name="ProviderAdd"></button>
-                                <button type="button" id="provider-delete" class="option-button i18n" data-i18n-name="ProviderDelete"></button>
-                            </label>
-                        </div>
+                    <div class="setting-subtitle i18n" data-i18n-name="ProviderCurrent"></div>
+
+                    <!-- 服务商切换：每行一个可点击的行（而不是原生 select）。
+                         用行而不是下拉，是为了让「当前生效的那个」能有自己的按钮样式，
+                         与「新增 / 保存 / 测试」这些操作按钮明显区分开。 -->
+                    <div id="provider-list" class="provider-list"></div>
+                    <p
+                        id="provider-empty-hint"
+                        class="setting-hint i18n"
+                        data-i18n-name="ProviderEmptyHint"
+                        style="display: none;"
+                    ></p>
+                    <p
+                        id="provider-list-hint"
+                        class="setting-hint i18n"
+                        data-i18n-name="ProviderSectionHint"
+                    ></p>
+                    <div class="provider-toolbar">
+                        <button
+                            type="button"
+                            id="provider-add"
+                            class="option-button i18n"
+                            data-i18n-name="ProviderAdd"
+                        ></button>
                     </div>
 
                     <div id="provider-editor">
@@ -157,24 +168,33 @@
                                 placeholder="X-Api-Key: your-key"
                             ></textarea>
                         </div>
+
                         <div class="provider-actions">
                             <button
                                 type="button"
-                                id="provider-test"
+                                id="provider-save"
                                 class="option-button primary i18n"
+                                data-i18n-name="ProviderSave"
+                            ></button>
+                            <button
+                                type="button"
+                                id="provider-cancel"
+                                class="option-button i18n disabled-when-clean"
+                                data-i18n-name="ProviderCancel"
+                            ></button>
+                            <span id="provider-dirty" class="provider-dirty i18n" data-i18n-name="ProviderUnsaved" style="display: none;"></span>
+                        </div>
+                        <div class="provider-actions provider-actions-secondary">
+                            <button
+                                type="button"
+                                id="provider-test"
+                                class="option-button i18n"
                                 data-i18n-name="ProviderTest"
                             ></button>
                             <span id="provider-status" class="provider-status"></span>
                         </div>
                         <p class="setting-hint i18n" data-i18n-name="ProviderHint"></p>
                     </div>
-
-                    <p
-                        id="provider-empty-hint"
-                        class="setting-hint i18n"
-                        data-i18n-name="ProviderEmptyHint"
-                        style="display: none;"
-                    ></p>
                 </div>
 
                 <label

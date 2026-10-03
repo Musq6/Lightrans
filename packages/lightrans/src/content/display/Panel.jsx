@@ -1,6 +1,6 @@
 /** @jsx h */
 import { h, Fragment } from "preact";
-import { useEffect, useState, useRef, useCallback } from "preact/hooks";
+import { useEffect, useState, useRef, useCallback, useMemo } from "preact/hooks";
 import { useLatest, useEvent, useClickAway } from "react-use";
 import styled, { createGlobalStyle, ThemeProvider } from "styled-components";
 import root from "react-shadow/styled-components";
@@ -10,6 +10,8 @@ import Channel from "common/scripts/channel.js";
 import Moveable from "./library/moveable/moveable.js";
 import { delayPromise } from "common/scripts/promise.js";
 import { DEFAULT_SETTINGS, getOrSetDefaultSettings } from "common/scripts/settings.js";
+import { normalizeProviders } from "common/scripts/customProviderSettings.js";
+import { buildModelOptions, pickActiveModelKey } from "common/scripts/modelOptions.js";
 import { isChromePDFViewer } from "../common.js";
 import Result from "./Result.jsx"; // display translate result
 import { resolveDisplayStyle, fs, FONT_SCALE, FONT_SIZE_VAR } from "./displayStyle.js"; // 译文显示样式解析
@@ -45,10 +47,35 @@ export default function ResultPanel() {
     const [content, setContent] = useState({});
     // refer to the latest content equivalent to useRef()
     const contentRef = useLatest(content);
-    // available translators for current language setting
-    const [availableTranslators, setAvailableTranslators] = useState();
-    // selected translator
-    const [currentTranslator, setCurrentTranslator] = useState();
+    // 翻译服务模式："free" | "custom" | "provider"
+    const [serviceMode, setServiceMode] = useState("free");
+    // provider 模式下的服务商列表与当前选中项
+    const [providers, setProviders] = useState([]);
+    const [activeProviderId, setActiveProviderId] = useState("");
+    // 其余模式下的内置模型列表与当前模型
+    const [builtinModels, setBuiltinModels] = useState([]);
+    const [currentAIModel, setCurrentAIModel] = useState("");
+
+    // 顶部「翻译来源」下拉的选项与当前选中项。
+    // provider 模式下选项是各个服务商（切换即换服务商），其余模式是内置模型。
+    const modelOptions = useMemo(
+        () => buildModelOptions({ mode: serviceMode, providers, models: builtinModels }),
+        [serviceMode, providers, builtinModels]
+    );
+    const activeModelKey = useMemo(
+        () =>
+            pickActiveModelKey({
+                mode: serviceMode,
+                providers,
+                activeId: activeProviderId,
+                currentModel: currentAIModel,
+            }),
+        [serviceMode, providers, activeProviderId, currentAIModel]
+    );
+    const activeModelLabel = useMemo(() => {
+        const matched = modelOptions.find((option) => option.key === activeModelKey);
+        return matched ? matched.label : "";
+    }, [modelOptions, activeModelKey]);
     // Control the behavior of highlight part(a placeholder to preview the "fixed" style panel).
     const [highlight, setHighlight] = useState({
         show: false, // whether to show the highlight part
@@ -112,6 +139,53 @@ export default function ResultPanel() {
     }, []);
 
     /**
+     * 从后台取一次当前的服务模式与自定义服务商状态。
+     *
+     * 失败时保持默认值（free + 空列表）而不抛出：结果框是内容脚本，
+     * 后台服务重启的瞬间取不到数据是正常情况，不该因此让整块面板渲染失败。
+     */
+    const loadServiceState = useCallback(() => {
+        channel
+            .request("get_translation_service_state", {})
+            .then((state) => {
+                if (!state) return;
+                setServiceMode(state.mode || "free");
+                setProviders(normalizeProviders(state.providers));
+                setActiveProviderId(state.activeId || "");
+            })
+            .catch(() => {});
+    }, []);
+
+    /**
+     * 切换顶部下拉里的「翻译来源」。
+     *
+     * provider 模式下选的是服务商（写 ActiveProviderId），其余模式选的是内置模型
+     * （写 AIModel）——两条路径写的是不同的设置项，但都立刻重译当前文本，
+     * 否则用户会觉得「切了没反应」。
+     *
+     * @param {string} key 选中的下拉项 key
+     */
+    const changeModelSource = useCallback(
+        (key) => {
+            // 乐观更新：下拉的选中态由 state 推导，等 storage 回音再更新会让高亮迟一拍
+            if (serviceMode === "provider") setActiveProviderId(key);
+            else setCurrentAIModel(key);
+
+            const request =
+                serviceMode === "provider"
+                    ? channel.request("set_active_provider", { id: key })
+                    : channel.request("update_ai_model", { model: key });
+
+            request.then(() => {
+                if (window.translateResult.originalText) {
+                    channel.request("translate", { text: window.translateResult.originalText });
+                }
+            });
+        },
+        [serviceMode]
+    );
+
+    /**
      * The handler for window resize event.
      * Update drag bounds and the size or position of the result panel.
      */
@@ -131,11 +205,15 @@ export default function ResultPanel() {
 
         getOrSetDefaultSettings(["languageSetting", "AIModel"], DEFAULT_SETTINGS).then(
             async (result) => {
-                let availableAIModels = await channel.request("get_available_ai_models", {});
-                setAvailableTranslators(availableAIModels);
-                setCurrentTranslator(result.AIModel);
+                setBuiltinModels(await channel.request("get_available_ai_models", {}));
+                setCurrentAIModel(result.AIModel);
             }
         );
+
+        // 服务模式与自定义服务商：向后台取一次当前状态。
+        // 内容脚本读不到后台内存里的服务商列表，必须走通道；
+        // 这也保证结果框显示的列表与后台实际使用的那份同源。
+        loadServiceState();
 
         getOrSetDefaultSettings("fixSetting", DEFAULT_SETTINGS).then((result) => {
             setPanelFix(result.fixSetting);
@@ -147,8 +225,25 @@ export default function ResultPanel() {
         });
 
         chrome.storage.onChanged.addListener((changes, area) => {
-            if (area !== "sync" || !changes.DisplayStyle) return;
-            setDisplayStyle(resolveDisplayStyle(changes.DisplayStyle.newValue));
+            if (area !== "sync") return;
+
+            if (changes.DisplayStyle) {
+                setDisplayStyle(resolveDisplayStyle(changes.DisplayStyle.newValue));
+            }
+            // 服务模式 / 服务商列表 / 选中项 / 内置模型 在设置页被改动后，
+            // 已打开的结果框要跟着更新，否则会一直显示旧的翻译来源。
+            if (changes.TranslationService) {
+                setServiceMode(changes.TranslationService.newValue || "free");
+            }
+            if (changes.CustomProviders) {
+                setProviders(normalizeProviders(changes.CustomProviders.newValue));
+            }
+            if (changes.ActiveProviderId) {
+                setActiveProviderId(changes.ActiveProviderId.newValue || "");
+            }
+            if (changes.AIModel) {
+                setCurrentAIModel(changes.AIModel.newValue || "");
+            }
         });
 
         /*
@@ -184,8 +279,9 @@ export default function ResultPanel() {
         });
 
         channel.on("update_translator_options", (detail) => {
-            setAvailableTranslators(detail.availableTranslators);
-            setCurrentTranslator(detail.selectedTranslator);
+            // 该事件当前没有任何发出方（保留兼容）：只更新内置模型列表，
+            // 服务商列表仍以后台的 get_translation_service_state 为准。
+            setBuiltinModels(detail.availableTranslators || []);
         });
 
         channel.on("command", (detail) => {
@@ -633,35 +729,26 @@ export default function ResultPanel() {
                             moveableReady && (
                                 <Fragment>
                                     <Head ref={headElRef} displayType={displayType} data-testid="Head">
-                                        <SourceOption
-                                            title={currentTranslator}
-                                            activeKey={currentTranslator}
-                                            onSelect={(eventKey) => {
-                                                setCurrentTranslator(eventKey);
-                                                channel
-                                                    .request("update_ai_model", {
-                                                        model: eventKey,
-                                                    })
-                                                    .then(() => {
-                                                        if (window.translateResult.originalText)
-                                                            channel.request("translate", {
-                                                                text: window.translateResult
-                                                                    .originalText,
-                                                            });
-                                                    });
-                                            }}
-                                            data-testid="SourceOption"
-                                        >
-                                            {availableTranslators?.map((model) => (
-                                                <Dropdown.Item
-                                                    role="button"
-                                                    key={model}
-                                                    eventKey={model}
-                                                >
-                                                    {model}
-                                                </Dropdown.Item>
-                                            ))}
-                                        </SourceOption>
+                                        {/* 没有可选项时不渲染下拉：provider 模式下还没添加服务商时会走到这里，
+                                            渲染一个空下拉会让人以为面板坏了 */}
+                                        {modelOptions.length > 0 && (
+                                            <SourceOption
+                                                title={activeModelLabel}
+                                                activeKey={activeModelKey}
+                                                onSelect={changeModelSource}
+                                                data-testid="SourceOption"
+                                            >
+                                                {modelOptions.map((option) => (
+                                                    <Dropdown.Item
+                                                        role="button"
+                                                        key={option.key}
+                                                        eventKey={option.key}
+                                                    >
+                                                        {option.label}
+                                                    </Dropdown.Item>
+                                                ))}
+                                            </SourceOption>
+                                        )}
                                         <HeadIcons>
                                             <HeadIcon
                                                 role="button"
@@ -960,6 +1047,11 @@ const SourceOption = styled(Dropdown)`
     background-color: transparent;
     border-color: transparent;
     outline: none;
+    // provider 模式下文案是「服务商名 · 模型名」，比单纯模型名长得多，
+    // 不加省略号会把右侧的图标挤出去
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 `;
 
 const Highlight = styled.div`

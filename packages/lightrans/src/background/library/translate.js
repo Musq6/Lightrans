@@ -164,6 +164,32 @@ class TranslatorManager {
             fetchModels((params && params.config) || {})
         );
 
+        // 划词结果框的「翻译来源」下拉所需的状态：当前服务模式 + 自定义服务商列表。
+        // 结果框是内容脚本，拿不到后台内存里的 this.CUSTOM_PROVIDERS，必须由这里提供；
+        // 顺带保证它看到的列表与后台实际使用的那份是同一个来源。
+        this.channel.provide("get_translation_service_state", async () => {
+            await this.config_loader;
+            return {
+                mode: this.SERVICE_MODE,
+                activeId: this.ACTIVE_PROVIDER_ID,
+                providers: this.CUSTOM_PROVIDERS.map((provider) => ({
+                    id: provider.id,
+                    name: provider.name,
+                    model: provider.model,
+                    endpoint: provider.endpoint,
+                })),
+            };
+        });
+
+        // 从划词结果框切换当前使用的自定义服务商。
+        // 只写 ActiveProviderId：服务商列表本身的增删改仍只在设置页进行。
+        this.channel.provide("set_active_provider", (params) => {
+            const id = (params && params.id) || "";
+            return new Promise((resolve) => {
+                chrome.storage.sync.set({ ActiveProviderId: id }, () => resolve());
+            });
+        });
+
         // 配置加载完成后已经在构造函数中更新了菜单，无需重复调用
     }
 

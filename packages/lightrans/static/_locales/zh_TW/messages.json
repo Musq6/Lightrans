@@ -1452,7 +1452,7 @@
         "description": "GLM翻譯的縮寫"
     },
     "ProviderCurrent": {
-        "message": "目前服務商：",
+        "message": "目前服務商",
         "description": "自定义第三方服务商设置"
     },
     "ProviderAdd": {
@@ -1537,6 +1537,38 @@
     },
     "ProviderQuotaExceeded": {
         "message": "服務商數量過多，會超出瀏覽器同步儲存上限，請先移除一個。",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderSectionHint": {
+        "message": "點選其中一列即可切換目前使用的服務商。",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderInUse": {
+        "message": "使用中",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderUnsaved": {
+        "message": "未儲存",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderSave": {
+        "message": "儲存",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderCancel": {
+        "message": "取消",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderSaved": {
+        "message": "已儲存",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderModelMissing": {
+        "message": "已儲存，但模型名稱為空，翻譯前請補上。",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderDiscardConfirm": {
+        "message": "有未儲存的修改，繼續將會捨棄這些變更，確定嗎？",
         "description": "自定义第三方服务商设置"
     }
 }

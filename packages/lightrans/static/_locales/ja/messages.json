@@ -1456,7 +1456,7 @@
         "description": "Zulu"
     },
     "ProviderCurrent": {
-        "message": "現在のプロバイダー：",
+        "message": "現在のプロバイダー",
         "description": "自定义第三方服务商设置"
     },
     "ProviderAdd": {
@@ -1541,6 +1541,38 @@
     },
     "ProviderQuotaExceeded": {
         "message": "プロバイダーが多すぎます。ブラウザの同期ストレージ上限を超えるため、1 つ削除してください。",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderSectionHint": {
+        "message": "行をクリックすると、翻訳に使用するプロバイダーを切り替えられます。",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderInUse": {
+        "message": "使用中",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderUnsaved": {
+        "message": "未保存",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderSave": {
+        "message": "保存",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderCancel": {
+        "message": "キャンセル",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderSaved": {
+        "message": "保存しました",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderModelMissing": {
+        "message": "保存しましたが、モデル名が空です。翻訳前に設定してください。",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderDiscardConfirm": {
+        "message": "未保存の変更があります。続けると破棄されます。よろしいですか？",
         "description": "自定义第三方服务商设置"
     }
 }

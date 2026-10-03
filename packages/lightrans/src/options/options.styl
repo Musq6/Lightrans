@@ -100,10 +100,16 @@ header {
 
 select {
     height: 34px;
-    padding: 0 10px;
+    /* 右侧留出箭头的空间 */
+    padding: 0 30px 0 10px;
     border: 1px solid #e2e6ef;
     border-radius: 10px;
     background-color: #f7f9fc;
+    /* 关掉了原生外观就必须自己画箭头，否则下拉框看起来和输入框一模一样，
+       用户完全看不出这里可以展开（「切换服务商」原本就栽在这上面） */
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5l5-5' fill='none' stroke='%236b7280' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
     font-size: 14px;
     color: #1f2430;
     cursor: pointer;
@@ -190,6 +196,136 @@ input.translator-config {
 
 #provider-editor {
     margin: 4px 5% 0;
+}
+
+/* ---------- 服务商切换列表 ----------
+   一行一个可点击的「按钮」，而不是原生下拉：这样每一行都能有自己的状态与样式，
+   当前生效的那一行才可能与「新增 / 保存」这些操作按钮明显区分开。 */
+
+.provider-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 10px 5% 0;
+}
+
+.provider-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border: 1px solid #e2e6ef;
+    border-left: 4px solid #e2e6ef;
+    border-radius: 10px;
+    background-color: #fafbfe;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+
+    &:hover {
+        border-color: #cfd6e4;
+        background-color: #f2f5fb;
+    }
+
+    &:focus-visible {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(74, 140, 247, 0.18);
+    }
+
+    /* 当前生效的服务商：强调色左边条 + 淡蓝底 + 阴影 + 徽标，
+       与上面那些灰色 option-button 完全不是一个视觉层级 */
+    &.is-active {
+        border-color: color-primary;
+        border-left-color: color-primary;
+        background-color: rgba(74, 140, 247, 0.08);
+        box-shadow: 0 1px 8px rgba(74, 140, 247, 0.18);
+
+        .provider-item-name {
+            color: color-primary;
+            font-weight: 600;
+        }
+
+        .provider-item-model {
+            color: #5b7fbf;
+        }
+    }
+}
+
+.provider-item-main {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.provider-item-name {
+    font-size: 14px;
+    color: #3c4250;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.provider-item-model {
+    font-size: 12px;
+    color: #8a93a3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.provider-item-badge {
+    flex: 0 0 auto;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background-color: color-primary;
+    color: #fff;
+    font-size: 12px;
+    line-height: 1.6;
+    white-space: nowrap;
+}
+
+.provider-item-delete {
+    flex: 0 0 auto;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: none;
+    border-radius: 6px;
+    background-color: transparent;
+    color: #aab2c0;
+    font-family: inherit;
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+
+    &:hover {
+        background-color: rgba(217, 83, 79, 0.12);
+        color: #d9534f;
+    }
+}
+
+.provider-toolbar {
+    display: flex;
+    gap: 10px;
+    margin: 10px 5% 0;
+}
+
+/* 「未保存」徽标：橙色调，和蓝色的「使用中」区分开 */
+.provider-dirty {
+    padding: 2px 10px;
+    border-radius: 999px;
+    background-color: rgba(237, 160, 40, 0.16);
+    color: #b9750c;
+    font-size: 12px;
+    line-height: 1.7;
+    white-space: nowrap;
+}
+
+/* 主操作（保存/取消）与次要操作（测试/拉取）之间的呼吸感 */
+.provider-actions-secondary {
+    margin-top: 8px;
 }
 
 .provider-field {

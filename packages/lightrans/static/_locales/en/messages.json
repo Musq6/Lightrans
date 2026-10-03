@@ -1452,7 +1452,7 @@
         "description": "Abbreviation of GLM Translate."
     },
     "ProviderCurrent": {
-        "message": "Provider:",
+        "message": "Current provider",
         "description": "自定义第三方服务商设置"
     },
     "ProviderAdd": {
@@ -1537,6 +1537,38 @@
     },
     "ProviderQuotaExceeded": {
         "message": "Too many providers - the browser sync storage limit would be exceeded. Consider removing one.",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderSectionHint": {
+        "message": "Click a provider to switch which one is used for translation.",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderInUse": {
+        "message": "In use",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderUnsaved": {
+        "message": "Unsaved",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderSave": {
+        "message": "Save",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderCancel": {
+        "message": "Cancel",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderSaved": {
+        "message": "Saved",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderModelMissing": {
+        "message": "Saved, but the model name is empty - translation will fail until you fill it in.",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderDiscardConfirm": {
+        "message": "You have unsaved changes. Continuing will discard them. Continue?",
         "description": "自定义第三方服务商设置"
     }
 }
