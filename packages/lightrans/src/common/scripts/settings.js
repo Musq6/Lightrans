@@ -69,7 +69,10 @@ const DEFAULT_SETTINGS = {
         SkipSticky: true,
         SkipSemanticChrome: true,
     },
-    // 翻译服务模式：free（硅基流动免费，走我们的反代服务，零配置免 Key）/ custom（硅基流动自定义，直连官方 + 自有 Key）
+    // 翻译服务模式：
+    // - free      硅基流动（免费），走我们的反代服务，零配置免 Key
+    // - custom    硅基流动（自定义），直连官方 + 自有 Key
+    // - provider  自定义服务商，使用 CustomProviders 里选中的第三方 OpenAI 兼容接口
     TranslationService: "free",
     // 自定义模式下使用的 SiliconFlow API Key（仅 custom 模式读取）
     ApiKey: "",
@@ -77,6 +80,12 @@ const DEFAULT_SETTINGS = {
     CustomModel: false,
     // 自定义模型名称（CustomModel 为 true 时生效，翻译时作为 model 字段直连硅基流动）
     CustomModelName: "",
+    // 自定义第三方服务商列表（仅 provider 模式读取）。每项结构：
+    // { id, name, endpoint, apiKey, model, headers }
+    // 存于 storage.sync 会随账号同步，注意单条目的 8KB 配额（几十个服务商无压力）
+    CustomProviders: [],
+    // 当前选中的自定义服务商 id（仅 provider 模式读取；找不到时回退到列表首项）
+    ActiveProviderId: "",
     HybridTranslatorConfig: {
         // The translators used in current hybrid translate.
         translators: ["AITrans"],

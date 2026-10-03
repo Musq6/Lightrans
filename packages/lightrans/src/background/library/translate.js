@@ -1,10 +1,10 @@
-import { AITranslator } from "@lightrans/translators";
+import { AITranslator, testProvider, fetchModels } from "@lightrans/translators";
 import { log } from "common/scripts/common.js";
 import { promiseTabs, delayPromise } from "common/scripts/promise.js";
 import { DEFAULT_SETTINGS, getOrSetDefaultSettings } from "common/scripts/settings.js";
 import { resolvePageTranslationStyleCss } from "common/scripts/pageTranslationStyle.js";
 import { resolvePageTranslationScope } from "common/scripts/pageTranslationScope.js";
-
+import { normalizeProviders, resolveActiveProvider } from "common/scripts/customProviderSettings.js";
 class TranslatorManager {
     /**
      * @param {import("../../common/scripts/channel.js").default} channel Communication channel.
@@ -19,7 +19,7 @@ class TranslatorManager {
          * @type {Promise<Void>} Initialize configurations.
          */
         this.config_loader = getOrSetDefaultSettings(
-            ["languageSetting", "OtherSettings", "AIModel", "ApiKey", "TranslationService", "CustomModel", "CustomModelName"],
+            ["languageSetting", "OtherSettings", "AIModel", "ApiKey", "TranslationService", "CustomModel", "CustomModelName", "CustomProviders", "ActiveProviderId"],
             DEFAULT_SETTINGS
         ).then((configs) => {
             // Init AI translator.
@@ -45,6 +45,10 @@ class TranslatorManager {
             this.CUSTOM_MODEL_NAME = configs.CustomModelName || "";
             this.AI_MODEL = configs.AIModel;
 
+            // 自定义服务商列表与当前选中项
+            this.CUSTOM_PROVIDERS = normalizeProviders(configs.CustomProviders);
+            this.ACTIVE_PROVIDER_ID = configs.ActiveProviderId || "";
+
             // 计算有效模型：自定义模式且勾选了自定义模型时，使用用户手填的模型名。
             // 兜底：免费模式或非自定义时若 AIModel 缺失，回退到预设模型首个，避免空模型被后续 setCurrentModel 静默 no-op。
             const fallbackModel = this.AI_TRANSLATOR.getAvailableModels()[0];
@@ -56,6 +60,8 @@ class TranslatorManager {
             this.AI_TRANSLATOR.setCurrentModel(effectiveModel);
             this.AI_TRANSLATOR.setServiceMode(this.SERVICE_MODE);
             this.AI_TRANSLATOR.setApiKey(configs.ApiKey || "");
+            // provider 模式下模型取自服务商配置，这里必须把选中服务商推给翻译器
+            this.applyCustomProvider();
 
             // 在配置加载完成后更新菜单
             this.updateTranslatePageMenu();
@@ -66,6 +72,17 @@ class TranslatorManager {
          */
         this.provideServices();
         this.listenToEvents();
+    }
+
+    /**
+     * 把当前选中的自定义服务商推给翻译器。
+     *
+     * 只在「需要用到它」时才要求存在：其余模式（free / custom）选中的服务商为空是正常的，
+     * 不能因此报错；provider 模式下若确实没有可用服务商，翻译器会在请求时抛出明确错误。
+     */
+    applyCustomProvider() {
+        const provider = resolveActiveProvider(this.CUSTOM_PROVIDERS, this.ACTIVE_PROVIDER_ID);
+        this.AI_TRANSLATOR.setCustomProvider(provider);
     }
 
     /**
@@ -132,7 +149,21 @@ class TranslatorManager {
         this.channel.provide("update_ai_model", (detail) =>
             this.updateAIModel(detail.model)
         );
-        
+
+        // 测试自定义服务商连通性。
+        // 收的是设置页当前的**草稿**配置（可能尚未保存），因此不能读 this.CUSTOM_PROVIDERS——
+        // 否则用户改了地址点测试，测的还是旧值，是最容易让人误判的一种 bug。
+        this.channel.provide("test_custom_provider", (params) => {
+            const config = (params && params.config) || {};
+            const sample = (params && params.sample) || undefined;
+            return testProvider(config, sample);
+        });
+
+        // 拉取自定义服务商的模型列表（OpenAI 兼容的 GET /models）
+        this.channel.provide("list_custom_provider_models", (params) =>
+            fetchModels((params && params.config) || {})
+        );
+
         // 配置加载完成后已经在构造函数中更新了菜单，无需重复调用
     }
 
@@ -175,6 +206,20 @@ class TranslatorManager {
 
                     if (changes["CustomModelName"]) {
                         this.CUSTOM_MODEL_NAME = changes["CustomModelName"].newValue || "";
+                    }
+
+                    if (changes["CustomProviders"]) {
+                        this.CUSTOM_PROVIDERS = normalizeProviders(changes["CustomProviders"].newValue);
+                    }
+
+                    if (changes["ActiveProviderId"]) {
+                        this.ACTIVE_PROVIDER_ID = changes["ActiveProviderId"].newValue || "";
+                    }
+
+                    // 服务商列表 / 选中项 / 服务模式任一变化都要重推配置，
+                    // 否则用户在设置页新增服务商后不重载扩展仍然用的是旧配置。
+                    if (changes["CustomProviders"] || changes["ActiveProviderId"] || changes["TranslationService"]) {
+                        this.applyCustomProvider();
                     }
 
                     if (changes["ApiKey"]) {

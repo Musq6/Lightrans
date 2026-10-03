@@ -1,5 +1,15 @@
 import AITranslator from "./translators/aitrans";
 import axios from "./axios";
+import {
+    chatCompletion,
+    buildHeaders,
+    deriveModelsEndpoint,
+    extractContent,
+    fetchModels,
+    normalizeEndpoint,
+    parseExtraHeaders,
+    testProvider,
+} from "./translators/customProvider";
 
 /**
  * Supported languages.
@@ -225,5 +235,15 @@ export {
     axios,
     LANGUAGES,
     AITranslator,
+    // 自定义第三方服务商（OpenAI 兼容协议）相关工具
+    chatCompletion,
+    buildHeaders,
+    deriveModelsEndpoint,
+    extractContent,
+    fetchModels,
+    normalizeEndpoint,
+    parseExtraHeaders,
+    testProvider,
 };
 export * from "./types";
+export type { CustomProviderConfig, ProviderTestResult } from "./translators/customProvider";

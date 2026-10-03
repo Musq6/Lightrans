@@ -1,5 +1,6 @@
 import axios from "../axios";
 import { TranslationResult } from "../types";
+import { chatCompletion, extractContent, CustomProviderConfig } from "./customProvider";
 
 class AITranslator {
     /**
@@ -12,13 +13,20 @@ class AITranslator {
     /** 免费模式固定地址：我们自己部署的 API 反代服务（EdgeOne 中继），强制使用，避免被旧设置覆盖。 */
     private readonly OFFICIAL_RELAY_ENDPOINT: string = "https://trans.hin.cool/api/translate";
 
+    /**
+     * 配置类错误标记。normalizeError 见到它就把后面的原文透出给用户，
+     * 而不是统一压成 "AItrans translation failed"。
+     */
+    private static readonly CONFIG_ERROR_PREFIX: string = "LightransConfigError: ";
+
     /** 自定义模式默认 API 接口：直连硅基流动官方端点（注意不是我们的中继服务）。 */
     private static readonly SILICONFLOW_ENDPOINT: string = "https://api.siliconflow.cn/v1/chat/completions";
 
     /**
      * 翻译服务模式：
      * - "free"：硅基流动（免费），走我们自己部署的 API 反代服务，内置共享令牌，零配置、无需 API Key；
-     * - "custom"：硅基流动（自定义），用户填自己的 SiliconFlow API Key，直连硅基流动官方端点。
+     * - "custom"：硅基流动（自定义），用户填自己的 SiliconFlow API Key，直连硅基流动官方端点；
+     * - "provider"：自定义服务商，用户自填任意 OpenAI 兼容的第三方大模型接口（地址 / 密钥 / 模型）。
      */
     private serviceMode: string = "free";
 
@@ -26,6 +34,11 @@ class AITranslator {
      * 自定义模式下的 SiliconFlow API Key（仅 custom 模式使用，由设置页注入）。
      */
     private apiKey: string = "";
+
+    /**
+     * 当前选中的自定义服务商配置（仅 provider 模式使用，由设置页经后台注入）。
+     */
+    private providerConfig: CustomProviderConfig | null = null;
 
     /**
      * Available translation models.
@@ -78,20 +91,65 @@ class AITranslator {
             "Content-Type": "application/json",
         };
 
-        // 发送前兜底：currentModel 为空或被污染时，回退到安全模型，避免把空/非法模型名发到
-        // 中继（免费模式）或官方端点（自定义模式）导致 502 / 上游报错。
-        const safeModel = this.getSafeModel();
-
         // 批量模式要求模型保留 <N> 编号标记，逐段返回译文；单条模式与原行为一致。
         const systemPrompt = batch
             ? `You are a professional translator. Translate each numbered text segment (delimited by tags like <1>, <2>) from ${from} to ${to}. Keep exactly the same tag format in your output, one translated segment per tag. Do not merge, split, add or remove any segments. Return only the tagged translations.`
             : `You are a professional translator. Translate the following text from ${from} to ${to}. Only return the translated text, no other content.`;
 
+        if (this.serviceMode === "provider") {
+            // 自定义服务商：用户自填端点 / 密钥 / 模型，走 OpenAI 兼容协议。
+            const provider = this.providerConfig;
+            if (!provider) {
+                throw AITranslator.configError("自定义服务商模式需要先在设置里添加并选择一个服务商");
+            }
+            if (!provider.endpoint || !provider.endpoint.trim()) {
+                throw AITranslator.configError("选中的服务商还没填接口地址，请到设置里补充");
+            }
+
+            // 这里**不能**回退到预设模型：预设是硅基流动的模型名，发给第三方服务商必然报错，
+            // 与其得到一个含糊的 400，不如直接告诉用户缺模型名。
+            const providerModel = (provider.model || "").trim();
+            if (!providerModel) {
+                throw AITranslator.configError("自定义服务商需要填写模型名称");
+            }
+
+            let data: unknown;
+            try {
+                data = await chatCompletion(provider, {
+                    model: providerModel,
+                    messages: [
+                        { role: "system", content: systemPrompt },
+                        { role: "user", content: text }
+                    ],
+                    temperature: 0.3,
+                    max_tokens: maxTokens,
+                    // 仅 Qwen 系列关闭思考模式（与中继服务保持一致）
+                    enable_thinking: providerModel.startsWith("Qwen/") ? false : undefined
+                });
+            } catch (error) {
+                // 5xx / 429 / 网络抖动 → 上抛，交给上层退避重试（与免费模式行为一致）
+                if (AITranslator.isTransientError(error)) throw error;
+                // 4xx 等属于配置问题：把状态码与上游返回原样透出。
+                // 否则用户配错地址/密钥只会看到「翻译失败」，完全无法定位。
+                throw AITranslator.configError(AITranslator.errorDetail(error));
+            }
+
+            const content = extractContent(data);
+            if (!content) {
+                throw AITranslator.configError("自定义服务商返回内容为空，请确认该接口兼容 OpenAI 的 /chat/completions 格式");
+            }
+            return content;
+        }
+
         if (this.serviceMode === "custom") {
             // 硅基流动（自定义）：直连官方端点，使用用户自有 API Key 鉴权。
             if (!this.apiKey) {
-                throw new Error("自定义模式需要填写 SiliconFlow API Key");
+                throw AITranslator.configError("自定义模式需要填写 SiliconFlow API Key");
             }
+
+            // 发送前兜底：currentModel 为空或被污染时回退到安全模型，避免把空/非法模型名
+            // 发到官方端点导致上游报错。仅 free / custom 两种硅基流动模式适用。
+            const safeModel = this.getSafeModel();
             const endpoint = AITranslator.SILICONFLOW_ENDPOINT;
             headers["Authorization"] = `Bearer ${this.apiKey}`;
 
@@ -112,6 +170,8 @@ class AITranslator {
         }
 
         // 硅基流动（免费）：走我们自己部署的 API 反代服务，内置共享令牌，SiliconFlow Key 不进扩展。
+        // 中继只放行预设模型，故 free 模式下必须回退到安全模型（getSafeModel 内含该判断）。
+        const safeModel = this.getSafeModel();
         const endpoint = this.OFFICIAL_RELAY_ENDPOINT;
         headers["X-Lightrans-Token"] = this.RELAY_TOKEN;
 
@@ -347,17 +407,50 @@ class AITranslator {
     }
 
     /**
-     * 统一对外抛出的错误：瞬时错误带可重试标记，便于上层识别并退避重试。
+     * 统一对外抛出的错误。
+     *
+     * 分三类，顺序不能乱：
+     * 1. 配置类错误（缺地址 / 缺模型名 / 上游 4xx）→ **保留原文**。这类错误用户自己能修，
+     *    笼统的「翻译失败」会让人无从下手（设置页的 friendlyTranslateError 也依赖原始消息）。
+     * 2. 瞬时错误（429 / 5xx / 网络）→ 加可重试前缀，交给上层退避。
+     * 3. 其余 → 兜底文案。
      *
      * @param error 捕获的错误
      *
      * @returns 规范化后的 Error
      */
     private static normalizeError(error: unknown): Error {
+        const message = String((error as { message?: string })?.message || error || "");
+        if (message.startsWith(AITranslator.CONFIG_ERROR_PREFIX)) {
+            return new Error(message.slice(AITranslator.CONFIG_ERROR_PREFIX.length));
+        }
         if (AITranslator.isTransientError(error)) {
             return AITranslator.transientError(error);
         }
         return new Error("AItrans translation failed");
+    }
+
+    /**
+     * 构造配置类错误（会原样透出给用户）。
+     *
+     * @param message 面向用户的原因说明
+     *
+     * @returns 带内部标记的 Error
+     */
+    private static configError(message: string): Error {
+        return new Error(AITranslator.CONFIG_ERROR_PREFIX + message);
+    }
+
+    /**
+     * 提取错误详情文本，用于向用户透出上游原因。
+     *
+     * @param error 捕获的错误
+     *
+     * @returns 详情文本
+     */
+    private static errorDetail(error: unknown): string {
+        const err = error as { errorMsg?: string; message?: string };
+        return String(err?.errorMsg || err?.message || error || "");
     }
 
     /**
@@ -483,12 +576,18 @@ class AITranslator {
     }
 
     /**
-     * Set the translation service mode (free | custom).
+     * Set the translation service mode (free | custom | provider).
      *
-     * @param mode "free" 走我们的反代服务（内置共享令牌）；"custom" 直连硅基流动（用户自有 Key）。
+     * @param mode "free" 走我们的反代服务（内置共享令牌）；
+     *             "custom" 直连硅基流动（用户自有 Key）；
+     *             "provider" 使用用户自定义的第三方服务商（OpenAI 兼容）。
      */
     setServiceMode(mode: string): void {
-        this.serviceMode = (mode === "custom") ? "custom" : "free";
+        if (mode === "custom" || mode === "provider") {
+            this.serviceMode = mode;
+            return;
+        }
+        this.serviceMode = "free";
     }
 
     /**
@@ -498,6 +597,23 @@ class AITranslator {
      */
     setApiKey(key: string): void {
         this.apiKey = (key || "").trim();
+    }
+
+    /**
+     * Set the active custom provider (provider 模式使用).
+     *
+     * 传入 null 表示「没有选中任何服务商」。注意**不会**因为 endpoint 为空就丢弃配置：
+     * 空地址要留到请求时抛明确错误，而不是在这里变成 null——否则会被误判成「没配置服务商」，
+     * 让上层回退到别的服务商，用户就会看到「明明选了 B 却在用 A」。
+     *
+     * @param config 服务商配置
+     */
+    setCustomProvider(config: CustomProviderConfig | null): void {
+        if (!config) {
+            this.providerConfig = null;
+            return;
+        }
+        this.providerConfig = { ...config };
     }
 
     /**

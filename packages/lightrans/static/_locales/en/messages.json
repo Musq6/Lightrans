@@ -1450,5 +1450,93 @@
     "GLMTranslateShort": {
         "message": "GLM",
         "description": "Abbreviation of GLM Translate."
+    },
+    "ProviderCurrent": {
+        "message": "Provider:",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderAdd": {
+        "message": "Add",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderDelete": {
+        "message": "Delete",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderName": {
+        "message": "Name",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderEndpoint": {
+        "message": "Endpoint",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderApiKey": {
+        "message": "API Key",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderModel": {
+        "message": "Model",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderFetchModels": {
+        "message": "Fetch models",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderHeaders": {
+        "message": "Extra headers",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderTest": {
+        "message": "Test connection",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderHint": {
+        "message": "Works with any provider that speaks the OpenAI-compatible /chat/completions protocol. Entering just the domain or /v1 is enough - the path is completed automatically. Extra headers take one \"Key: Value\" per line.",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderEmptyHint": {
+        "message": "No provider configured yet. Click \"Add\" to create one.",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderDefaultName": {
+        "message": "Provider",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderDeleteConfirm": {
+        "message": "Delete this provider? Its endpoint, API key and model will be removed.",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderNeedEndpoint": {
+        "message": "Please enter the endpoint first",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderTesting": {
+        "message": "Testing...",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderTestOk": {
+        "message": "Connected",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderTestFail": {
+        "message": "Test failed",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderFetching": {
+        "message": "Fetching...",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderNoModels": {
+        "message": "No models returned",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderFetched": {
+        "message": "Fetched $1 models",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderQuotaExceeded": {
+        "message": "Too many providers - the browser sync storage limit would be exceeded. Consider removing one.",
+        "description": "自定义第三方服务商设置"
     }
 }

@@ -152,6 +152,102 @@ input.translator-config {
     width: 5px;
 }
 
+/* ---------- 自定义第三方服务商 ---------- */
+
+.option-button {
+    height: 32px;
+    padding: 0 14px;
+    border: 1px solid #e2e6ef;
+    border-radius: 8px;
+    background-color: #f7f9fc;
+    font-family: inherit;
+    font-size: 13px;
+    color: #3c4250;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+
+    &:hover {
+        border-color: #cfd6e4;
+        background-color: #eef2f9;
+    }
+
+    &:active {
+        background-color: #e4eaf5;
+    }
+
+    &.primary {
+        border-color: color-primary;
+        background-color: color-primary;
+        color: #fff;
+
+        &:hover {
+            border-color: #3d7ce8;
+            background-color: #3d7ce8;
+        }
+    }
+}
+
+#provider-editor {
+    margin: 4px 5% 0;
+}
+
+.provider-field {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 10px 0;
+
+    > label {
+        flex: 0 0 92px;
+        font-size: 14px;
+        color: #3c4250;
+        text-align: right;
+    }
+
+    > input.translator-config {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+}
+
+/* 额外请求头是多行内容：标签与输入框改为上下排布，textarea 高度自适应 */
+.provider-field-wide {
+    align-items: flex-start;
+
+    > textarea.translator-config {
+        flex: 1 1 auto;
+        min-width: 0;
+        height: auto;
+        padding: 8px 12px;
+        line-height: 1.6;
+        font-family: inherit;
+        resize: vertical;
+    }
+}
+
+.provider-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 14px 0 0;
+}
+
+.provider-status {
+    font-size: 13px;
+    line-height: 1.6;
+    word-break: break-all;
+    color: #8a93a3;
+
+    &.ok {
+        color: #1a9d63;
+    }
+
+    &.err {
+        color: #d9534f;
+    }
+}
+
 footer {
     padding: 24px 0;
     text-align: center;

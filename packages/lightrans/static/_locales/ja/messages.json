@@ -1454,5 +1454,93 @@
     "Zulu": {
         "message": "Zulu",
         "description": "Zulu"
+    },
+    "ProviderCurrent": {
+        "message": "現在のプロバイダー：",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderAdd": {
+        "message": "追加",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderDelete": {
+        "message": "削除",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderName": {
+        "message": "名前",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderEndpoint": {
+        "message": "エンドポイント",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderApiKey": {
+        "message": "APIキー",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderModel": {
+        "message": "モデル",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderFetchModels": {
+        "message": "モデル一覧を取得",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderHeaders": {
+        "message": "追加ヘッダー",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderTest": {
+        "message": "接続テスト",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderHint": {
+        "message": "OpenAI 互換の /chat/completions に対応していれば、どのプロバイダーでも使えます。エンドポイントはドメインまたは /v1 までで構いません（パスは自動補完されます）。追加ヘッダーは 1 行につき「Key: Value」形式で入力してください。",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderEmptyHint": {
+        "message": "プロバイダーが未設定です。「追加」から作成してください。",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderDefaultName": {
+        "message": "プロバイダー",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderDeleteConfirm": {
+        "message": "このプロバイダーを削除しますか？エンドポイント・APIキー・モデルも削除されます。",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderNeedEndpoint": {
+        "message": "先にエンドポイントを入力してください",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderTesting": {
+        "message": "テスト中…",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderTestOk": {
+        "message": "接続成功",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderTestFail": {
+        "message": "テスト失敗",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderFetching": {
+        "message": "取得中…",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderNoModels": {
+        "message": "モデルを取得できませんでした",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderFetched": {
+        "message": "$1 件のモデルを取得しました",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderQuotaExceeded": {
+        "message": "プロバイダーが多すぎます。ブラウザの同期ストレージ上限を超えるため、1 つ削除してください。",
+        "description": "自定义第三方服务商设置"
     }
 }

@@ -1450,5 +1450,93 @@
     "GLMTranslateShort": {
         "message": "GLM",
         "description": "GLM翻译的缩写"
+    },
+    "ProviderCurrent": {
+        "message": "当前服务商：",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderAdd": {
+        "message": "新增",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderDelete": {
+        "message": "删除",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderName": {
+        "message": "名称",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderEndpoint": {
+        "message": "接口地址",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderApiKey": {
+        "message": "API Key",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderModel": {
+        "message": "模型",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderFetchModels": {
+        "message": "拉取模型列表",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderHeaders": {
+        "message": "额外请求头",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderTest": {
+        "message": "测试连接",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderHint": {
+        "message": "支持任何兼容 OpenAI /chat/completions 协议的服务商。接口地址填到域名或 /v1 即可，路径会自动补全；额外请求头每行一个「Key: Value」。",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderEmptyHint": {
+        "message": "还没有服务商，点「新增」开始配置。",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderDefaultName": {
+        "message": "服务商",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderDeleteConfirm": {
+        "message": "确定删除这个服务商吗？它的接口地址、API Key 与模型都会被移除。",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderNeedEndpoint": {
+        "message": "请先填写接口地址",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderTesting": {
+        "message": "测试中…",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderTestOk": {
+        "message": "连接成功",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderTestFail": {
+        "message": "测试失败",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderFetching": {
+        "message": "拉取中…",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderNoModels": {
+        "message": "没有取到模型",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderFetched": {
+        "message": "已获取 $1 个模型",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderQuotaExceeded": {
+        "message": "服务商数量过多，会超出浏览器同步存储上限，请先移除一个。",
+        "description": "自定义第三方服务商设置"
     }
 }

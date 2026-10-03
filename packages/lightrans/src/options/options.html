@@ -33,10 +33,11 @@
                             >
                                 <option value="free">硅基流动（免费）</option>
                                 <option value="custom">硅基流动（自定义）</option>
+                                <option value="provider">自定义服务商</option>
                             </select>
                         </label>
                     </div>
-                    <div class="column">
+                    <div class="column" id="model-column">
                         <label
                             for="ai-model"
                             class="checked-label"
@@ -91,6 +92,89 @@
                             />
                         </label>
                     </div>
+                </div>
+
+                <!-- 自定义第三方服务商（仅「自定义服务商」模式显示）
+                     说明：本节输入框刻意不带 setting-path —— 服务商是对象数组，
+                     单个 setting-path 表达不了，因此由 options.js 整份读写 CustomProviders。
+                     本节所有 input 也都不参与声明式绑定（bootstrap 已跳过无 setting-path 的元素）。 -->
+                <div id="provider-section" style="display: none;">
+                    <div class="row">
+                        <div class="column" style="flex: 1 1 auto; min-width: 0;">
+                            <label
+                                class="checked-label"
+                                style="justify-content: flex-start; gap: 8px; width: 100%;"
+                            >
+                                <span class="i18n" data-i18n-name="ProviderCurrent"></span>
+                                <select id="provider-select" style="flex: 1 1 auto; min-width: 0;"></select>
+                                <span class="space"></span>
+                                <button type="button" id="provider-add" class="option-button i18n" data-i18n-name="ProviderAdd"></button>
+                                <button type="button" id="provider-delete" class="option-button i18n" data-i18n-name="ProviderDelete"></button>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div id="provider-editor">
+                        <div class="provider-field">
+                            <label class="i18n" data-i18n-name="ProviderName" for="provider-name"></label>
+                            <input id="provider-name" type="text" class="translator-config" />
+                        </div>
+                        <div class="provider-field">
+                            <label class="i18n" data-i18n-name="ProviderEndpoint" for="provider-endpoint"></label>
+                            <input
+                                id="provider-endpoint"
+                                type="text"
+                                class="translator-config"
+                                placeholder="https://api.example.com/v1"
+                            />
+                        </div>
+                        <div class="provider-field">
+                            <label class="i18n" data-i18n-name="ProviderApiKey" for="provider-api-key"></label>
+                            <input id="provider-api-key" type="password" class="translator-config" />
+                        </div>
+                        <div class="provider-field">
+                            <label class="i18n" data-i18n-name="ProviderModel" for="provider-model"></label>
+                            <input
+                                id="provider-model"
+                                type="text"
+                                class="translator-config"
+                                list="provider-model-list"
+                            />
+                            <datalist id="provider-model-list"></datalist>
+                            <button
+                                type="button"
+                                id="provider-models"
+                                class="option-button i18n"
+                                data-i18n-name="ProviderFetchModels"
+                            ></button>
+                        </div>
+                        <div class="provider-field provider-field-wide">
+                            <label class="i18n" data-i18n-name="ProviderHeaders" for="provider-headers"></label>
+                            <textarea
+                                id="provider-headers"
+                                class="translator-config"
+                                rows="2"
+                                placeholder="X-Api-Key: your-key"
+                            ></textarea>
+                        </div>
+                        <div class="provider-actions">
+                            <button
+                                type="button"
+                                id="provider-test"
+                                class="option-button primary i18n"
+                                data-i18n-name="ProviderTest"
+                            ></button>
+                            <span id="provider-status" class="provider-status"></span>
+                        </div>
+                        <p class="setting-hint i18n" data-i18n-name="ProviderHint"></p>
+                    </div>
+
+                    <p
+                        id="provider-empty-hint"
+                        class="setting-hint i18n"
+                        data-i18n-name="ProviderEmptyHint"
+                        style="display: none;"
+                    ></p>
                 </div>
 
                 <label
