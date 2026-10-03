@@ -1492,7 +1492,7 @@
         "description": "自定义第三方服务商设置"
     },
     "ProviderHint": {
-        "message": "支持任何兼容 OpenAI /chat/completions 协议的服务商。接口地址填到域名或 /v1 即可，路径会自动补全；额外请求头每行一个「Key: Value」。",
+        "message": "支持任何兼容 OpenAI /chat/completions 协议的服务商。接口地址填到域名或 /v1 即可，路径会自动补全。一个服务商可以添加多个模型，标有「使用中」的那个才会用于翻译；额外请求头每行一个「Key: Value」。",
         "description": "自定义第三方服务商设置"
     },
     "ProviderEmptyHint": {
@@ -1564,11 +1564,31 @@
         "description": "自定义第三方服务商设置"
     },
     "ProviderModelMissing": {
-        "message": "已保存，但模型名称为空，翻译前请补上。",
+        "message": "已保存，但还没有模型，翻译前请先添加。",
         "description": "自定义第三方服务商设置"
     },
     "ProviderDiscardConfirm": {
         "message": "有未保存的修改，继续将丢弃这些改动，确定吗？",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderModelAdd": {
+        "message": "添加",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderModelRemove": {
+        "message": "移除",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderModelEmptyHint": {
+        "message": "还没有模型，在下面添加一个后点「保存」。",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderModelNeedName": {
+        "message": "请先填写模型名称",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderModelDuplicate": {
+        "message": "这个模型已经在列表里了",
         "description": "自定义第三方服务商设置"
     }
 }

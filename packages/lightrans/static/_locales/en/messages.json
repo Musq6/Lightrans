@@ -1492,7 +1492,7 @@
         "description": "自定义第三方服务商设置"
     },
     "ProviderHint": {
-        "message": "Works with any provider that speaks the OpenAI-compatible /chat/completions protocol. Entering just the domain or /v1 is enough - the path is completed automatically. Extra headers take one \"Key: Value\" per line.",
+        "message": "Works with any provider that speaks the OpenAI-compatible /chat/completions protocol. Entering just the domain or /v1 is enough - the path is completed automatically. A provider can hold several models; the one marked \"In use\" is what translation uses. Extra headers take one \"Key: Value\" per line.",
         "description": "自定义第三方服务商设置"
     },
     "ProviderEmptyHint": {
@@ -1564,11 +1564,31 @@
         "description": "自定义第三方服务商设置"
     },
     "ProviderModelMissing": {
-        "message": "Saved, but the model name is empty - translation will fail until you fill it in.",
+        "message": "Saved, but there is no model yet - add one before translating.",
         "description": "自定义第三方服务商设置"
     },
     "ProviderDiscardConfirm": {
         "message": "You have unsaved changes. Continuing will discard them. Continue?",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderModelAdd": {
+        "message": "Add",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderModelRemove": {
+        "message": "Remove",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderModelEmptyHint": {
+        "message": "No model yet. Add one below, then press Save.",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderModelNeedName": {
+        "message": "Enter a model name first",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderModelDuplicate": {
+        "message": "That model is already in the list",
         "description": "自定义第三方服务商设置"
     }
 }

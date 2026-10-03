@@ -1492,7 +1492,7 @@
         "description": "自定义第三方服务商设置"
     },
     "ProviderHint": {
-        "message": "支援任何相容於 OpenAI /chat/completions 協議的服務商。介面位址填到網域或 /v1 即可，路徑會自動補齊；額外請求標頭每行一個「Key: Value」。",
+        "message": "支援任何相容於 OpenAI /chat/completions 協議的服務商。介面位址填到網域或 /v1 即可，路徑會自動補齊。一個服務商可以新增多個模型，標有「使用中」的那個才會用於翻譯；額外請求標頭每行一個「Key: Value」。",
         "description": "自定义第三方服务商设置"
     },
     "ProviderEmptyHint": {
@@ -1564,11 +1564,31 @@
         "description": "自定义第三方服务商设置"
     },
     "ProviderModelMissing": {
-        "message": "已儲存，但模型名稱為空，翻譯前請補上。",
+        "message": "已儲存，但還沒有模型，翻譯前請先新增。",
         "description": "自定义第三方服务商设置"
     },
     "ProviderDiscardConfirm": {
         "message": "有未儲存的修改，繼續將會捨棄這些變更，確定嗎？",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderModelAdd": {
+        "message": "新增",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderModelRemove": {
+        "message": "移除",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderModelEmptyHint": {
+        "message": "還沒有模型，在下方新增一個後點「儲存」。",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderModelNeedName": {
+        "message": "請先填寫模型名稱",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderModelDuplicate": {
+        "message": "這個模型已經在清單裡了",
         "description": "自定义第三方服务商设置"
     }
 }

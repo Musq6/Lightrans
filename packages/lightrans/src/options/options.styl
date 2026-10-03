@@ -312,6 +312,42 @@ input.translator-config {
     margin: 10px 5% 0;
 }
 
+/* ---------- 服务商编辑区内的模型列表 ----------
+   与上面的服务商列表共用 .provider-item 的行样式（同样的点击切换 + 行内删除），
+   只把尺寸收紧一档，体现它是嵌套在编辑区里的一层。 */
+
+.provider-models {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.provider-field-wide > .provider-models {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+/* 覆盖 .provider-list 的外边距：这里已经是嵌套层，不需要再让 5% */
+.provider-list-compact {
+    margin: 0;
+    gap: 6px;
+
+    .provider-item {
+        padding: 6px 10px;
+    }
+}
+
+.provider-model-add {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+
+    > input.translator-config {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+}
+
 /* 「未保存」徽标：橙色调，和蓝色的「使用中」区分开 */
 .provider-dirty {
     padding: 2px 10px;

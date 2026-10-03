@@ -143,21 +143,40 @@
                             <label class="i18n" data-i18n-name="ProviderApiKey" for="provider-api-key"></label>
                             <input id="provider-api-key" type="password" class="translator-config" />
                         </div>
-                        <div class="provider-field">
-                            <label class="i18n" data-i18n-name="ProviderModel" for="provider-model"></label>
-                            <input
-                                id="provider-model"
-                                type="text"
-                                class="translator-config"
-                                list="provider-model-list"
-                            />
-                            <datalist id="provider-model-list"></datalist>
-                            <button
-                                type="button"
-                                id="provider-models"
-                                class="option-button i18n"
-                                data-i18n-name="ProviderFetchModels"
-                            ></button>
+                        <div class="provider-field provider-field-wide">
+                            <label class="i18n" data-i18n-name="ProviderModel" for="provider-model-input"></label>
+                            <div class="provider-models">
+                                <!-- 模型列表：与上面的服务商列表同一套交互（点击切换、逐项删除），
+                                     保持一致的心智模型。改动同样只进草稿，点「保存」才提交。 -->
+                                <div id="provider-model-list" class="provider-list provider-list-compact"></div>
+                                <p
+                                    id="provider-model-empty"
+                                    class="setting-hint i18n"
+                                    data-i18n-name="ProviderModelEmptyHint"
+                                ></p>
+                                <div class="provider-model-add">
+                                    <input
+                                        id="provider-model-input"
+                                        type="text"
+                                        class="translator-config"
+                                        list="provider-model-datalist"
+                                        placeholder="gpt-4o-mini"
+                                    />
+                                    <datalist id="provider-model-datalist"></datalist>
+                                    <button
+                                        type="button"
+                                        id="provider-model-add"
+                                        class="option-button i18n"
+                                        data-i18n-name="ProviderModelAdd"
+                                    ></button>
+                                    <button
+                                        type="button"
+                                        id="provider-models"
+                                        class="option-button i18n"
+                                        data-i18n-name="ProviderFetchModels"
+                                    ></button>
+                                </div>
+                            </div>
                         </div>
                         <div class="provider-field provider-field-wide">
                             <label class="i18n" data-i18n-name="ProviderHeaders" for="provider-headers"></label>

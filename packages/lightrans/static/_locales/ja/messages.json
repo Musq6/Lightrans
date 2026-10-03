@@ -1496,7 +1496,7 @@
         "description": "自定义第三方服务商设置"
     },
     "ProviderHint": {
-        "message": "OpenAI 互換の /chat/completions に対応していれば、どのプロバイダーでも使えます。エンドポイントはドメインまたは /v1 までで構いません（パスは自動補完されます）。追加ヘッダーは 1 行につき「Key: Value」形式で入力してください。",
+        "message": "OpenAI 互換の /chat/completions に対応していれば、どのプロバイダーでも使えます。エンドポイントはドメインまたは /v1 までで構いません（パスは自動補完されます）。1 つのプロバイダーに複数のモデルを登録でき、「使用中」のモデルが翻訳に使われます。追加ヘッダーは 1 行につき「Key: Value」形式で入力してください。",
         "description": "自定义第三方服务商设置"
     },
     "ProviderEmptyHint": {
@@ -1568,11 +1568,31 @@
         "description": "自定义第三方服务商设置"
     },
     "ProviderModelMissing": {
-        "message": "保存しましたが、モデル名が空です。翻訳前に設定してください。",
+        "message": "保存しましたが、モデルがまだありません。翻訳前に追加してください。",
         "description": "自定义第三方服务商设置"
     },
     "ProviderDiscardConfirm": {
         "message": "未保存の変更があります。続けると破棄されます。よろしいですか？",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderModelAdd": {
+        "message": "追加",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderModelRemove": {
+        "message": "削除",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderModelEmptyHint": {
+        "message": "モデルがまだありません。下で追加してから「保存」を押してください。",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderModelNeedName": {
+        "message": "先にモデル名を入力してください",
+        "description": "自定义第三方服务商设置"
+    },
+    "ProviderModelDuplicate": {
+        "message": "そのモデルはすでに一覧にあります",
         "description": "自定义第三方服务商设置"
     }
 }

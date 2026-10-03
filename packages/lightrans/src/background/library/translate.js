@@ -4,7 +4,7 @@ import { promiseTabs, delayPromise } from "common/scripts/promise.js";
 import { DEFAULT_SETTINGS, getOrSetDefaultSettings } from "common/scripts/settings.js";
 import { resolvePageTranslationStyleCss } from "common/scripts/pageTranslationStyle.js";
 import { resolvePageTranslationScope } from "common/scripts/pageTranslationScope.js";
-import { normalizeProviders, resolveActiveProvider } from "common/scripts/customProviderSettings.js";
+import { normalizeProviders, resolveActiveProvider, resolveActiveModel } from "common/scripts/customProviderSettings.js";
 class TranslatorManager {
     /**
      * @param {import("../../common/scripts/channel.js").default} channel Communication channel.
@@ -79,10 +79,15 @@ class TranslatorManager {
      *
      * 只在「需要用到它」时才要求存在：其余模式（free / custom）选中的服务商为空是正常的，
      * 不能因此报错；provider 模式下若确实没有可用服务商，翻译器会在请求时抛出明确错误。
+     *
+     * 翻译器那边只认单个 `model`（translators 包不必知道「一个服务商可以有多个模型」），
+     * 因此在这里解析出当前活动的那个再传进去。
      */
     applyCustomProvider() {
         const provider = resolveActiveProvider(this.CUSTOM_PROVIDERS, this.ACTIVE_PROVIDER_ID);
-        this.AI_TRANSLATOR.setCustomProvider(provider);
+        this.AI_TRANSLATOR.setCustomProvider(
+            provider ? { ...provider, model: resolveActiveModel(provider) } : null
+        );
     }
 
     /**
@@ -172,11 +177,14 @@ class TranslatorManager {
             return {
                 mode: this.SERVICE_MODE,
                 activeId: this.ACTIVE_PROVIDER_ID,
+                // 发完整结构（含 models / activeModel），让结果框不必依赖老数据迁移就能拿到
+                // 正确的形状；**不发 apiKey**——内容脚本没有用到它的地方，不必扩大暴露面。
                 providers: this.CUSTOM_PROVIDERS.map((provider) => ({
                     id: provider.id,
                     name: provider.name,
-                    model: provider.model,
                     endpoint: provider.endpoint,
+                    models: provider.models,
+                    activeModel: provider.activeModel,
                 })),
             };
         });

@@ -1,7 +1,7 @@
 import Channel from "common/scripts/channel.js";
 import { i18nHTML } from "common/scripts/common.js";
 import { DEFAULT_SETTINGS, getOrSetDefaultSettings } from "common/scripts/settings.js";
-import { normalizeProviders } from "common/scripts/customProviderSettings.js";
+import { normalizeProviders, resolveActiveModel } from "common/scripts/customProviderSettings.js";
 
 /**
  * Communication channel.
@@ -233,8 +233,11 @@ function initProviderSection(onChange, channel) {
     const nameInput = document.getElementById("provider-name");
     const endpointInput = document.getElementById("provider-endpoint");
     const apiKeyInput = document.getElementById("provider-api-key");
-    const modelInput = document.getElementById("provider-model");
-    const modelList = document.getElementById("provider-model-list");
+    const modelListEl = document.getElementById("provider-model-list");
+    const modelEmptyHint = document.getElementById("provider-model-empty");
+    const modelInput = document.getElementById("provider-model-input");
+    const modelDatalist = document.getElementById("provider-model-datalist");
+    const modelAddButton = document.getElementById("provider-model-add");
     const headersInput = document.getElementById("provider-headers");
     const addButton = document.getElementById("provider-add");
     const saveButton = document.getElementById("provider-save");
@@ -318,14 +321,21 @@ function initProviderSection(onChange, channel) {
         if (!draft) return false;
         const saved = findByKey(draft.id);
         if (!saved) {
-            return !!(draft.endpoint || draft.apiKey || draft.model || draft.headers);
+            return !!(
+                draft.endpoint ||
+                draft.apiKey ||
+                draft.headers ||
+                (draft.models && draft.models.length)
+            );
         }
         return (
             saved.name !== draft.name ||
             saved.endpoint !== draft.endpoint ||
             saved.apiKey !== draft.apiKey ||
-            saved.model !== draft.model ||
-            saved.headers !== draft.headers
+            saved.headers !== draft.headers ||
+            saved.activeModel !== draft.activeModel ||
+            // 数组要按内容比：引用比较会因为每次编辑都新建数组而恒为 true
+            saved.models.join("\n") !== draft.models.join("\n")
         );
     };
 
@@ -372,7 +382,14 @@ function initProviderSection(onChange, channel) {
 
             const modelEl = document.createElement("span");
             modelEl.className = "provider-item-model";
-            modelEl.textContent = provider.model || provider.endpoint || "";
+            // 显示当前生效的模型；有多个时补一个「+N」提示还有别的可选，
+            // 否则用户会以为这个服务商只配了一个模型。
+            const activeModel = resolveActiveModel(provider);
+            const modelCount = provider.models ? provider.models.length : 0;
+            modelEl.textContent =
+                activeModel && modelCount > 1
+                    ? `${activeModel} +${modelCount - 1}`
+                    : activeModel || provider.endpoint || "";
             main.appendChild(modelEl);
 
             row.appendChild(main);
@@ -408,6 +425,68 @@ function initProviderSection(onChange, channel) {
         }
     };
 
+    /**
+     * 渲染模型行列表。
+     *
+     * 与服务商列表同一套交互（一行一个按钮、点击切换、行内删除），
+     * 这样用户不用为「列表」这件事学两套操作。差别只在作用域：
+     * 服务商行切换的是**立即生效**的当前服务商，模型行切换的只是**草稿里的**当前模型，
+     * 要等「保存」才提交——与编辑区其它字段保持一致。
+     */
+    const renderModelList = () => {
+        if (!modelListEl) return;
+        modelListEl.innerHTML = "";
+
+        const models = draft && Array.isArray(draft.models) ? draft.models : [];
+        const activeModel = draft ? resolveActiveModel(draft) : "";
+
+        if (modelEmptyHint) modelEmptyHint.style.display = models.length === 0 ? "" : "none";
+
+        models.forEach((model) => {
+            const row = document.createElement("div");
+            row.className = "provider-item provider-item-model-row";
+            row.dataset.model = model;
+            row.setAttribute("role", "button");
+            row.tabIndex = 0;
+
+            if (model === activeModel) row.classList.add("is-active");
+
+            const nameEl = document.createElement("span");
+            nameEl.className = "provider-item-name";
+            nameEl.textContent = model;
+            row.appendChild(nameEl);
+
+            if (model === activeModel) {
+                const badge = document.createElement("span");
+                badge.className = "provider-item-badge";
+                badge.textContent = chrome.i18n.getMessage("ProviderInUse") || "使用中";
+                row.appendChild(badge);
+            }
+
+            const removeButton = document.createElement("button");
+            removeButton.type = "button";
+            removeButton.className = "provider-item-delete";
+            removeButton.textContent = "×";
+            removeButton.title = chrome.i18n.getMessage("ProviderModelRemove") || "移除";
+            removeButton.addEventListener("click", (event) => {
+                event.stopPropagation();
+                removeModel(model);
+            });
+            row.appendChild(removeButton);
+
+            const activate = () => selectModel(model);
+            row.addEventListener("click", activate);
+            row.addEventListener("keydown", (event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    activate();
+                }
+            });
+
+            modelListEl.appendChild(row);
+        });
+    };
+
     /** 把草稿填进表单 */
     const fillForm = () => {
         const hasDraft = !!draft;
@@ -425,9 +504,11 @@ function initProviderSection(onChange, channel) {
         nameInput.value = draft.name;
         endpointInput.value = draft.endpoint;
         apiKeyInput.value = draft.apiKey;
-        modelInput.value = draft.model;
         headersInput.value = draft.headers;
+        // 模型输入框是「新增」用的，不是某个模型的值，每次填充都清空
+        if (modelInput) modelInput.value = "";
 
+        renderModelList();
         refreshDirtyState();
     };
 
@@ -456,9 +537,62 @@ function initProviderSection(onChange, channel) {
      * @param {boolean} isNew 是否为尚未保存过的新服务商
      */
     const startEdit = (provider, isNew) => {
-        draft = Object.assign({}, provider);
+        // models 必须**深拷贝**：Object.assign 只复制引用，草稿里 push/splice 会直接改到
+        // providers 里那一份（"未保存的改动"就悄悄生效了，取消也回不去）。
+        draft = Object.assign({}, provider, {
+            models: Array.isArray(provider.models) ? [...provider.models] : [],
+        });
         draftIsNew = isNew;
         setStatus("", null);
+    };
+
+    /** 把某个模型设为草稿的当前模型（只改草稿，保存后才生效） */
+    const selectModel = (model) => {
+        if (!draft) return;
+        draft.activeModel = model;
+        renderModelList();
+        refreshDirtyState();
+    };
+
+    const removeModel = (model) => {
+        if (!draft || !Array.isArray(draft.models)) return;
+
+        const index = draft.models.indexOf(model);
+        if (index < 0) return;
+        draft.models.splice(index, 1);
+
+        // 删掉的正是当前模型时，落到剩下的第一个，避免 activeModel 悬空
+        if (resolveActiveModel(draft) !== draft.activeModel) {
+            draft.activeModel = draft.models[0] || "";
+        }
+
+        renderModelList();
+        refreshDirtyState();
+    };
+
+    const addModel = () => {
+        if (!draft || !modelInput) return;
+
+        const model = modelInput.value.trim();
+        if (!model) {
+            setStatus(chrome.i18n.getMessage("ProviderModelNeedName") || "请先填写模型名称", "err");
+            modelInput.focus();
+            return;
+        }
+        if (draft.models.includes(model)) {
+            setStatus(chrome.i18n.getMessage("ProviderModelDuplicate") || "这个模型已经在列表里了", "err");
+            return;
+        }
+
+        draft.models.push(model);
+        // 第一个模型自动成为当前模型：否则会出现「有模型但没选中」的空档
+        if (!draft.activeModel) draft.activeModel = model;
+
+        modelInput.value = "";
+        setStatus("", null);
+        renderModelList();
+        refreshDirtyState();
+        modelInput.focus();
     };
 
     /** 点某一行：既切换为当前使用，也载入编辑器 */
@@ -483,7 +617,8 @@ function initProviderSection(onChange, channel) {
                 name: `${namePrefix} ${providers.length + 1}`,
                 endpoint: "",
                 apiKey: "",
-                model: "",
+                models: [],
+                activeModel: "",
                 headers: "",
             },
             true
@@ -529,7 +664,13 @@ function initProviderSection(onChange, channel) {
         }
         draft.endpoint = endpoint;
 
-        const stored = Object.assign({}, draft);
+        // models 必须**深拷贝**再存：Object.assign 只复制引用，
+        // 若把 draft.models 这个数组直接放进 providers，保存之后草稿与已保存项就共用同一个
+        // 数组——后续在草稿里 push/splice 会静默改到已保存的那份，表现为
+        // 「取消回不到原状态」「明明改了却不显示未保存」。
+        const stored = Object.assign({}, draft, {
+            models: Array.isArray(draft.models) ? [...draft.models] : [],
+        });
         const index = providers.findIndex((provider) => provider.id === stored.id);
         if (index >= 0) providers[index] = stored;
         else providers.push(stored);
@@ -549,9 +690,9 @@ function initProviderSection(onChange, channel) {
         // 否则用户会看到「已保存」而实际什么都没存进去。
         if (!written) return;
 
-        if (!stored.model) {
+        if (!stored.models || stored.models.length === 0) {
             setStatus(
-                chrome.i18n.getMessage("ProviderModelMissing") || "已保存，但还没填模型名称，翻译前请补上",
+                chrome.i18n.getMessage("ProviderModelMissing") || "已保存，但还没有模型，翻译前请补上",
                 "err"
             );
         } else {
@@ -591,12 +732,22 @@ function initProviderSection(onChange, channel) {
     bindField(nameInput, "name");
     bindField(endpointInput, "endpoint");
     bindField(apiKeyInput, "apiKey");
-    bindField(modelInput, "model");
     bindField(headersInput, "headers");
+    // 模型不是「一个字段」而是列表：输入框只用于新增，由「添加」按钮提交
 
     if (addButton) addButton.addEventListener("click", addProvider);
     if (saveButton) saveButton.addEventListener("click", saveDraft);
     if (cancelButton) cancelButton.addEventListener("click", cancelDraft);
+    if (modelAddButton) modelAddButton.addEventListener("click", addModel);
+    // 输入框里回车即添加——每次都要伸手去点按钮太啰嗦
+    if (modelInput) {
+        modelInput.addEventListener("keydown", (event) => {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                addModel();
+            }
+        });
+    }
 
     // 有未保存改动时离开页面给出提醒，避免静默丢失
     window.addEventListener("beforeunload", (event) => {
@@ -605,12 +756,18 @@ function initProviderSection(onChange, channel) {
         event.returnValue = "";
     });
 
-    /** 收集草稿为一份可直接发给后台的配置（未保存也能测） */
+    /**
+     * 收集草稿为一份可直接发给后台的配置（未保存也能测）。
+     *
+     * 后台的「测试连接」「拉取模型列表」只关心**一个**模型，因此这里解析出当前活动的那个，
+     * 而不是把整个列表发过去——服务商可以有多个模型是设置页的概念，
+     * 请求层不必知道，translators 包也就无需改动。
+     */
     const collectConfig = () => ({
         name: nameInput ? nameInput.value : "",
         endpoint: endpointInput ? endpointInput.value.trim() : "",
         apiKey: apiKeyInput ? apiKeyInput.value.trim() : "",
-        model: modelInput ? modelInput.value.trim() : "",
+        model: draft ? resolveActiveModel(draft) : "",
         headers: headersInput ? headersInput.value : "",
     });
 
@@ -667,12 +824,14 @@ function initProviderSection(onChange, channel) {
                     return;
                 }
 
-                if (modelList) {
-                    modelList.innerHTML = "";
+                // 拉取结果是**候选**，填进输入框的候选列表，由用户挑一个点「添加」——
+                // 直接全部塞进模型列表会把服务商的几十个模型一次性灌进来，反而没法用。
+                if (modelDatalist) {
+                    modelDatalist.innerHTML = "";
                     for (const name of models) {
                         const option = document.createElement("option");
                         option.value = name;
-                        modelList.appendChild(option);
+                        modelDatalist.appendChild(option);
                     }
                 }
                 if (modelInput) modelInput.focus();

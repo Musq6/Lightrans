@@ -8,7 +8,7 @@
  *   而 Panel.jsx 里的副作用部分没法这么测。
  */
 
-import { resolveActiveProvider } from "./customProviderSettings.js";
+import { resolveActiveProvider, resolveActiveModel } from "./customProviderSettings.js";
 
 /**
  * 把一个服务商格式化成下拉项文案。
@@ -16,6 +16,8 @@ import { resolveActiveProvider } from "./customProviderSettings.js";
  * 优先「名称 · 模型」——只显示模型名会让两个用同一模型的服务商无法区分，
  * 只显示名称又看不出到底在用什么模型。名称/模型缺任一时退回另一个，
  * 两者都空时用接口地址兜底，保证不会出现空白项。
+ *
+ * 模型取的是**当前活动**的那个（一个服务商可以有多个模型）。
  *
  * @param {Object} provider 服务商配置
  *
@@ -25,7 +27,7 @@ export function formatProviderLabel(provider) {
     if (!provider || typeof provider !== "object") return "";
 
     const name = (provider.name || "").trim();
-    const model = (provider.model || "").trim();
+    const model = resolveActiveModel(provider);
 
     if (name && model) return `${name} · ${model}`;
     return name || model || (provider.endpoint || "").trim();
