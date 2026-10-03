@@ -11,7 +11,7 @@ import Moveable from "./library/moveable/moveable.js";
 import { delayPromise } from "common/scripts/promise.js";
 import { DEFAULT_SETTINGS, getOrSetDefaultSettings } from "common/scripts/settings.js";
 import { normalizeProviders } from "common/scripts/customProviderSettings.js";
-import { buildModelOptions, pickActiveModelKey } from "common/scripts/modelOptions.js";
+import { buildModelOptions, pickActiveModelKey, pickActiveModelLabel } from "common/scripts/modelOptions.js";
 import { isChromePDFViewer } from "../common.js";
 import Result from "./Result.jsx"; // display translate result
 import { resolveDisplayStyle, fs, FONT_SCALE, FONT_SIZE_VAR } from "./displayStyle.js"; // 译文显示样式解析
@@ -72,10 +72,17 @@ export default function ResultPanel() {
             }),
         [serviceMode, providers, activeProviderId, currentAIModel]
     );
-    const activeModelLabel = useMemo(() => {
-        const matched = modelOptions.find((option) => option.key === activeModelKey);
-        return matched ? matched.label : "";
-    }, [modelOptions, activeModelKey]);
+    const activeModelLabel = useMemo(
+        () =>
+            pickActiveModelLabel({
+                mode: serviceMode,
+                providers,
+                models: builtinModels,
+                activeId: activeProviderId,
+                currentModel: currentAIModel,
+            }),
+        [serviceMode, providers, builtinModels, activeProviderId, currentAIModel]
+    );
     // Control the behavior of highlight part(a placeholder to preview the "fixed" style panel).
     const [highlight, setHighlight] = useState({
         show: false, // whether to show the highlight part
@@ -159,22 +166,41 @@ export default function ResultPanel() {
     /**
      * 切换顶部下拉里的「翻译来源」。
      *
-     * provider 模式下选的是服务商（写 ActiveProviderId），其余模式选的是内置模型
-     * （写 AIModel）——两条路径写的是不同的设置项，但都立刻重译当前文本，
-     * 否则用户会觉得「切了没反应」。
+     * provider 模式下选中的是**「服务商 + 模型」组合**（一个服务商可以配多个模型，
+     * 只按服务商列一项的话这个下拉就换不了模型），因此要同时更新：
+     * 当前服务商、以及该服务商的当前模型。其余模式选的是内置模型，写 AIModel。
+     *
+     * 两条路径都立刻重译当前文本，否则用户会觉得「切了没反应」。
      *
      * @param {string} key 选中的下拉项 key
      */
     const changeModelSource = useCallback(
         (key) => {
-            // 乐观更新：下拉的选中态由 state 推导，等 storage 回音再更新会让高亮迟一拍
-            if (serviceMode === "provider") setActiveProviderId(key);
-            else setCurrentAIModel(key);
+            const option = modelOptions.find((item) => item.key === key);
+            if (!option) return;
 
-            const request =
-                serviceMode === "provider"
-                    ? channel.request("set_active_provider", { id: key })
-                    : channel.request("update_ai_model", { model: key });
+            let request;
+
+            if (serviceMode === "provider") {
+                // 乐观更新：下拉的高亮由 state 推导，等 storage 回音再更新会慢一拍。
+                // 服务商列表里那一项的 activeModel 也要一起改，否则 pickActiveModelKey
+                // 仍会算出旧模型的 key，高亮会落到错误的项上。
+                setProviders((list) =>
+                    list.map((provider) =>
+                        provider.id === option.providerId
+                            ? { ...provider, activeModel: option.model }
+                            : provider
+                    )
+                );
+                setActiveProviderId(option.providerId);
+                request = channel.request("set_active_provider", {
+                    id: option.providerId,
+                    model: option.model,
+                });
+            } else {
+                setCurrentAIModel(key);
+                request = channel.request("update_ai_model", { model: key });
+            }
 
             request.then(() => {
                 if (window.translateResult.originalText) {
@@ -182,7 +208,7 @@ export default function ResultPanel() {
                 }
             });
         },
-        [serviceMode]
+        [serviceMode, modelOptions]
     );
 
     /**

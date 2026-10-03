@@ -189,12 +189,31 @@ class TranslatorManager {
             };
         });
 
-        // 从划词结果框切换当前使用的自定义服务商。
-        // 只写 ActiveProviderId：服务商列表本身的增删改仍只在设置页进行。
+        // 从划词结果框切换当前使用的「服务商 + 模型」。
+        // 只写 ActiveProviderId 与对应服务商的 activeModel：服务商与模型的增删改仍只在设置页进行。
+        //
+        // 为什么不另建一个顶层 ActiveModel：模型只对某个服务商有意义（同一个模型名在不同服务商下
+        // 可能并不存在），把它挂在服务商上是唯一不会出现「A 的模型配给了 B」的结构。
         this.channel.provide("set_active_provider", (params) => {
             const id = (params && params.id) || "";
+            const model = typeof (params && params.model) === "string" ? params.model.trim() : "";
+
+            const payload = { ActiveProviderId: id };
+
+            if (model) {
+                const list = normalizeProviders(this.CUSTOM_PROVIDERS);
+                const target = list.find((provider) => provider.id === id);
+
+                // 只接受该服务商**确实拥有**的模型：结果框传来的 key 可能因为并发编辑而过期，
+                // 写进一个不存在的模型会让下次翻译直接失败。
+                if (target && Array.isArray(target.models) && target.models.includes(model)) {
+                    target.activeModel = model;
+                    payload.CustomProviders = list;
+                }
+            }
+
             return new Promise((resolve) => {
-                chrome.storage.sync.set({ ActiveProviderId: id }, () => resolve());
+                chrome.storage.sync.set(payload, () => resolve());
             });
         });
 
