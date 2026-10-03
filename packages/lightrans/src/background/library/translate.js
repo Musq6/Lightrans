@@ -198,22 +198,35 @@ class TranslatorManager {
             const id = (params && params.id) || "";
             const model = typeof (params && params.model) === "string" ? params.model.trim() : "";
 
-            const payload = { ActiveProviderId: id };
+            const onlySwitchProvider = () =>
+                new Promise((resolve) => {
+                    chrome.storage.sync.set({ ActiveProviderId: id }, () => resolve());
+                });
 
-            if (model) {
-                const list = normalizeProviders(this.CUSTOM_PROVIDERS);
-                const target = list.find((provider) => provider.id === id);
-
-                // 只接受该服务商**确实拥有**的模型：结果框传来的 key 可能因为并发编辑而过期，
-                // 写进一个不存在的模型会让下次翻译直接失败。
-                if (target && Array.isArray(target.models) && target.models.includes(model)) {
-                    target.activeModel = model;
-                    payload.CustomProviders = list;
-                }
-            }
+            // 只切换服务商（老调用方，或没带模型）：不需要动服务商列表
+            if (!model) return onlySwitchProvider();
 
             return new Promise((resolve) => {
-                chrome.storage.sync.set(payload, () => resolve());
+                // 从 storage **重新读一份**再改，不用内存里的 this.CUSTOM_PROVIDERS：
+                // 后者可能在 onChanged 事件到达之前就已经过期（用户刚在设置页保存过），
+                // 拿它整份写回会把设置页刚保存的内容覆盖掉——静默丢数据，最难排查。
+                chrome.storage.sync.get(["CustomProviders"], (result) => {
+                    const list = normalizeProviders(result && result.CustomProviders);
+                    const target = list.find((provider) => provider.id === id);
+
+                    // 只接受该服务商**确实拥有**的模型：结果框传来的 key 可能因为并发编辑而过期，
+                    // 写进一个不存在的模型会让之后每次翻译都失败。
+                    if (!target || !Array.isArray(target.models) || !target.models.includes(model)) {
+                        onlySwitchProvider().then(resolve);
+                        return;
+                    }
+
+                    target.activeModel = model;
+                    chrome.storage.sync.set(
+                        { ActiveProviderId: id, CustomProviders: list },
+                        () => resolve()
+                    );
+                });
             });
         });
 

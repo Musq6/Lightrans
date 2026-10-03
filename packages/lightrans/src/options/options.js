@@ -193,6 +193,40 @@ window.onload = () => {
 };
 
 /**
+ * 估算一段数据写入 chrome.storage.sync 时占用的**字节数**。
+ *
+ * storage.sync 的单条目上限是 8KB **字节**，而 `JSON.stringify(x).length` 数的是 UTF-16
+ * 码元——服务商名称里出现中文时，一个字符占 3 字节，用字符数当字节数会明显低估配额，
+ * 导致写入被拒而提示却迟迟不出现。用 TextEncoder 精确计算；极旧环境没有它就退回按字符数
+ * 保守放大（中文按 3 字节、其余按 1 字节），宁可早提示也不要写到失败。
+ *
+ * @param {*} value 待写入的数据
+ *
+ * @returns {number} 估算字节数
+ */
+function estimateSyncItemBytes(value) {
+    let json;
+    try {
+        json = JSON.stringify(value);
+    } catch (error) {
+        // 循环引用等情况：交给 storage 自己报错，这里不阻断
+        return 0;
+    }
+    if (!json) return 0;
+
+    if (typeof TextEncoder === "function") {
+        return new TextEncoder().encode(json).length;
+    }
+
+    let bytes = 0;
+    for (const char of json) {
+        const code = char.codePointAt(0);
+        bytes += code <= 0x7f ? 1 : code <= 0x7ff ? 2 : 3;
+    }
+    return bytes;
+}
+
+/**
  * 生成一个稳定的服务商 id。
  *
  * 用浏览器自带的 randomUUID（扩展页面是安全上下文，一定可用）；
@@ -272,7 +306,9 @@ function initProviderSection(onChange, channel) {
      *
      * @param {boolean} immediate 是否立即写入
      *
-     * @returns {boolean} 是否真的写入了（配额超限时为 false，调用方据此不要覆盖提示）
+     * @returns {boolean} 是否真的写入了。**只有 immediate=true 时这个返回值才有意义**：
+     *   防抖路径下写入发生在 400ms 之后，此刻无从得知结果，只能先返回 true。
+     *   调用方（saveDraft）只在立即写入时据此决定要不要覆盖提示。
      */
     const persist = (immediate) => {
         if (saveTimer) {
@@ -284,7 +320,7 @@ function initProviderSection(onChange, channel) {
         const write = () => {
             const payload = { CustomProviders: providers, ActiveProviderId: activeId };
 
-            const size = JSON.stringify(providers).length;
+            const size = estimateSyncItemBytes(providers);
             if (size > 8000) {
                 const message = chrome.i18n.getMessage("ProviderQuotaExceeded") || "服务商数量过多，已超出浏览器同步存储上限";
                 setStatus(message, "err");
@@ -334,8 +370,10 @@ function initProviderSection(onChange, channel) {
             saved.apiKey !== draft.apiKey ||
             saved.headers !== draft.headers ||
             saved.activeModel !== draft.activeModel ||
-            // 数组要按内容比：引用比较会因为每次编辑都新建数组而恒为 true
-            saved.models.join("\n") !== draft.models.join("\n")
+            // 数组按**内容**比较：引用比较会因为每次编辑都新建数组而恒为 true。
+            // 用 JSON 而不是 join("\n")：模型名理论上可以含换行，join 会把
+            // ["a\nb"] 与 ["a","b"] 误判为相同（假阴性 = 有改动却不认为脏）。
+            JSON.stringify(saved.models) !== JSON.stringify(draft.models)
         );
     };
 
@@ -572,6 +610,9 @@ function initProviderSection(onChange, channel) {
 
     const addModel = () => {
         if (!draft || !modelInput) return;
+        // 防御：草稿的 models 理论上一定由 startEdit 保证是数组，但一旦不是，
+        // 后面的 .includes/.push 会直接抛错并中断整个点击处理
+        if (!Array.isArray(draft.models)) draft.models = [];
 
         const model = modelInput.value.trim();
         if (!model) {

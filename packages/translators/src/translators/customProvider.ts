@@ -48,16 +48,20 @@ const CHAT_COMPLETIONS_PATH = "/chat/completions";
  *
  * 容错规则（按顺序）：
  * 1. 裸域名自动补 `https://`（本地调试填 `localhost:11434` 时按 http 处理）；
- * 2. 去掉结尾多余斜杠；
- * 3. 已含 `/chat/completions` → 原样使用（用户可能填了非标准路径）；
- * 4. 只有域名（路径为空或 `/`）→ 补 `/v1/chat/completions`，因为主流服务商都在 /v1 下；
- * 5. 其余情况（如 `/api/v3`、`/compatible-mode/v1`）→ 保留已有路径，只追加 `/chat/completions`。
+ * 2. 已含 `/chat/completions` → 原样使用（用户可能填了非标准路径）；
+ * 3. 只有域名（路径为空或 `/`）→ 补 `/v1/chat/completions`，因为主流服务商都在 /v1 下；
+ * 4. 其余情况（如 `/api/v3`、`/compatible-mode/v1`）→ 保留已有路径，只追加 `/chat/completions`。
+ *
+ * ⚠️ 判断与补全都**只作用于路径部分**，查询串原样保留。早期实现直接在整串上做字符串拼接，
+ * 于是 `.../chat/completions?api-version=2024-02-01` 被拼成
+ * `...?api-version=2024-02-01/chat/completions`——一个必然 404 的地址。
+ * Azure OpenAI 正是这种形式（且正好需要用额外请求头传 `api-key`，属于我们要支持的场景）。
  *
  * @param endpoint 用户填写的地址
  *
  * @returns 归一化后的完整对话补全地址
  *
- * @throws 地址为空时抛出
+ * @throws 地址为空或格式非法时抛出
  */
 export function normalizeEndpoint(endpoint: string): string {
     let raw = (endpoint || "").trim();
@@ -66,40 +70,54 @@ export function normalizeEndpoint(endpoint: string): string {
     }
 
     if (!/^https?:\/\//i.test(raw)) {
+        // 带了别的协议（ftp://、ws:// 之类）时不补前缀，而是直接报错：
+        // 补成 "https://ftp://x" 会解析成一个语义完全不通的地址，用户更难判断哪里错了。
+        if (/^[a-z][a-z0-9+.-]*:\/\//i.test(raw)) {
+            throw new Error("接口地址必须以 http:// 或 https:// 开头");
+        }
+
         // 本地服务（Ollama / LM Studio / vLLM）通常没有证书，按 http 处理更可用
         const isLocal = /^(localhost|127\.0\.0\.1|\[::1\]|0\.0\.0\.0)(:\d+)?(\/|$)/i.test(raw);
         raw = (isLocal ? "http://" : "https://") + raw;
     }
 
-    raw = raw.replace(/\/+$/, "");
-
-    if (/\/chat\/completions$/i.test(raw)) {
-        return raw;
-    }
-
-    let pathname: string;
+    let url: URL;
     try {
-        pathname = new URL(raw).pathname;
-    } catch (e) {
+        url = new URL(raw);
+    } catch (error) {
         throw new Error("接口地址格式不正确，请检查是否含有非法字符");
     }
 
-    if (pathname === "" || pathname === "/") {
-        return raw + "/v1" + CHAT_COMPLETIONS_PATH;
+    // 去掉结尾多余斜杠后再判断：`/v1/` 与 `/v1` 应视为同一种情况
+    let pathname = url.pathname.replace(/\/+$/, "");
+
+    if (/\/chat\/completions$/i.test(pathname)) {
+        // 已经带上了目标路径，什么都不用补
+    } else if (pathname === "" || pathname === "/") {
+        pathname = "/v1" + CHAT_COMPLETIONS_PATH;
+    } else {
+        pathname = pathname + CHAT_COMPLETIONS_PATH;
     }
 
-    return raw + CHAT_COMPLETIONS_PATH;
+    // 用 URL 重新序列化：主机名会被规范化为小写（正确且必要），
+    // 路径大小写、查询串与用户名密码都原样保留。
+    url.pathname = pathname;
+    return url.toString();
 }
 
 /**
  * 由对话补全地址推导出模型列表地址（OpenAI 兼容的 `/v1/models`）。
+ *
+ * 与 normalizeEndpoint 同理，只在路径上做替换，查询串保留。
  *
  * @param endpoint 对话补全地址（未归一化也可）
  *
  * @returns 模型列表地址
  */
 export function deriveModelsEndpoint(endpoint: string): string {
-    return normalizeEndpoint(endpoint).replace(/\/chat\/completions$/i, "/models");
+    const url = new URL(normalizeEndpoint(endpoint));
+    url.pathname = url.pathname.replace(/\/chat\/completions$/i, "/models");
+    return url.toString();
 }
 
 /**
