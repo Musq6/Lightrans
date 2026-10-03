@@ -1047,11 +1047,11 @@ const SourceOption = styled(Dropdown)`
     background-color: transparent;
     border-color: transparent;
     outline: none;
-    // provider 模式下文案是「服务商名 · 模型名」，比单纯模型名长得多，
-    // 不加省略号会把右侧的图标挤出去
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    // ⚠️ 这里**不能**加 overflow: hidden。
+    // 本样式作用在 Dropdown 的容器元素上，而展开的菜单是该容器内部的
+    // position: absolute 子元素——一旦容器裁剪溢出内容，菜单就会被整个裁掉：
+    // 表现是「点得开但看不见任何选项，只能看到当前值」。
+    // 文案过长时的省略号放在 Dropdown 内部的标题文本上（TitleText），不要放在这里。
 `;
 
 const Highlight = styled.div`

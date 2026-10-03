@@ -54,7 +54,7 @@ const Dropdown = forwardRef((props, ref) => {
                     setOpen(!open);
                 }}
             >
-                {props.title}
+                <TitleText>{props.title}</TitleText>
                 <StyledArrowDownIcon />
             </Title>
             <Menu open={open}>{Items}</Menu>
@@ -123,6 +123,8 @@ const Menu = styled.ul`
 const Title = styled.a`
     display: flex;
     align-items: center;
+    /* 允许在 max-width 约束下收缩，否则内部的省略号永远不会触发 */
+    min-width: 0;
     margin-bottom: 0;
     font-weight: 500;
     text-align: center;
@@ -150,9 +152,23 @@ const Title = styled.a`
         fill: ${ColorPrimary};
     }
 `;
+/**
+ * 标题文字单独包一层，用于在文案过长时显示省略号。
+ *
+ * 不能把 text-overflow 加在外层容器上：容器的溢出裁剪会把展开的菜单一并裁掉
+ * （菜单是容器内 position: absolute 的子元素），表现为「能点开但看不到任何选项」。
+ * 裁剪必须落在文字这一层。
+ */
+const TitleText = styled.span`
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+`;
 const StyledArrowDownIcon = styled(ArrowDownIcon)`
     fill: ${(props) => props.theme.secondaryColor};
     margin-left: 4px;
+    /* 不参与收缩：文案再长也不能把下拉箭头挤没，否则这个控件就看不出能点开 */
+    flex: 0 0 auto;
     transition: fill 0.2s linear;
 `;
 
